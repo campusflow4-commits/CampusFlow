@@ -10,7 +10,7 @@ const testName = 'Test Student Atlas';
 
 async function verifyFlow() {
   console.log('----------------------------------------------------');
-  console.log('🧪 Running SkillSwap End-to-End Registration Test...');
+  console.log('🧪 Running CampusFlow End-to-End Registration Test...');
   console.log('----------------------------------------------------');
   console.log(`👤 Test User Email: ${testEmail}`);
 

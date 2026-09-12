@@ -94,11 +94,11 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* How SkillSwap Works */}
+      {/* How CampusFlow Works */}
       <section id="how-it-works" style={{ padding: '80px 0', borderTop: '1px solid var(--border-color)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>
-            <h2 style={{ fontSize: '2.2rem', marginBottom: '12px' }}>How SkillSwap Works</h2>
+            <h2 style={{ fontSize: '2.2rem', marginBottom: '12px' }}>How CampusFlow Works</h2>
             <p style={{ color: 'var(--text-secondary)', maxWidth: '540px', margin: '0 auto' }}>
               Simple 3-step peer exchange powered by our smart matching engine and credit system.
             </p>
@@ -168,7 +168,7 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Why SkillSwap / Feature Grid */}
+      {/* Why CampusFlow / Feature Grid */}
       <section id="features" style={{ padding: '80px 0', borderTop: '1px solid var(--border-color)', background: 'rgba(255, 255, 255, 0.01)' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '50px' }}>

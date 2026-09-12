@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
       validator: function(v) {
         return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(v);
       },
-      message: 'Only official @gmail.com addresses are permitted on SkillSwap.'
+      message: 'Only official @gmail.com addresses are permitted on CampusFlow.'
     }
   },
   password: {

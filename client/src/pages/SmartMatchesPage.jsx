@@ -46,7 +46,7 @@ export const SmartMatchesPage = () => {
     const candidate = match.student;
     setRequestedSkill(match.mutualSkills?.theyTeach?.[0] || candidate.skillsToTeach?.[0] || '');
     setOfferedSkill(match.mutualSkills?.youTeach?.[0] || user?.skillsToTeach?.[0] || '');
-    setMessage(`Hi ${candidate.name}! SkillSwap identified a ${match.matchScore}% match between our skills. Would love to swap!`);
+    setMessage(`Hi ${candidate.name}! CampusFlow identified a ${match.matchScore}% match between our skills. Would love to swap!`);
     setStatusMsg(null);
     setModalOpen(true);
   };

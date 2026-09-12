@@ -61,7 +61,7 @@ export const LoginPage = () => {
           </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Student Login</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
-            Welcome back to your SkillSwap learning hub
+            Welcome back to your CampusFlow learning hub
           </p>
         </div>
 

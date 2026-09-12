@@ -1,7 +1,7 @@
-# SkillSwap 🎓
+# CampusFlow 🎓
 > *"Learn a skill. Teach a skill. Grow together."*
 
-SkillSwap is a full-stack student skill-exchange platform where students can teach skills they know and learn skills they need using a fair, credit-based economy.
+CampusFlow is a full-stack student skill-exchange platform where students can teach skills they know and learn skills they need using a fair, credit-based economy.
 
 ---
 

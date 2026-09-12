@@ -21,7 +21,7 @@ export const Footer = () => {
             <Repeat size={18} />
           </div>
           <span style={{ fontWeight: 800, fontSize: '1.15rem' }}>
-            Skill<span className="text-gradient">Swap</span>
+            Campus<span className="text-gradient">Flow</span>
           </span>
           <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '12px' }}>
             "Learn a skill. Teach a skill. Grow together."

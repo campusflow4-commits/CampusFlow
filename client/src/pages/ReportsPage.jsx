@@ -53,7 +53,7 @@ export const ReportsPage = () => {
           Help & <span className="text-gradient">Dispute Reporting</span>
         </h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-          SkillSwap is dedicated to maintaining a safe, respectful learning environment for all students.
+          CampusFlow is dedicated to maintaining a safe, respectful learning environment for all students.
         </p>
       </div>
 

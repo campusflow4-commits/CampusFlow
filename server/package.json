@@ -1,7 +1,7 @@
 {
   "name": "skillswap-server",
   "version": "1.0.0",
-  "description": "Backend API for SkillSwap peer-to-peer student skill exchange",
+  "description": "Backend API for CampusFlow peer-to-peer student skill exchange",
   "main": "server.js",
   "type": "module",
   "scripts": {

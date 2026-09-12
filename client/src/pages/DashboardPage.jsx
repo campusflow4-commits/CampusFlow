@@ -107,7 +107,7 @@ export const DashboardPage = () => {
           </div>
           <div>
             <p style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-              SkillSwap 7-Day Free Trial: <span style={{ color: '#a5b4fc' }}>{trialDays} {trialDays === 1 ? 'day' : 'days'} remaining</span>
+              CampusFlow 7-Day Free Trial: <span style={{ color: '#a5b4fc' }}>{trialDays} {trialDays === 1 ? 'day' : 'days'} remaining</span>
             </p>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               Enjoy unrestricted skill swaps, unlimited doubt queries, and curated video masterclasses.

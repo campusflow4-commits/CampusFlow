@@ -83,7 +83,7 @@ export const SkillExchangePage = () => {
     setSelectedStudent(student);
     setRequestedSkill(student.skillsToTeach?.[0] || '');
     setOfferedSkill(user?.skillsToTeach?.[0] || '');
-    setProposalMessage('Hi! I saw your profile on SkillSwap and would love to exchange skills.');
+    setProposalMessage('Hi! I saw your profile on CampusFlow and would love to exchange skills.');
     setModalFeedback(null);
     setRequestModalOpen(true);
   };
@@ -501,7 +501,7 @@ export const SkillExchangePage = () => {
           </div>
 
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            💡 Completing this swap will award both of you <strong style={{ color: '#fcd34d' }}>+20 SkillSwap credits</strong>!
+            💡 Completing this swap will award both of you <strong style={{ color: '#fcd34d' }}>+20 CampusFlow credits</strong>!
           </p>
 
           <button

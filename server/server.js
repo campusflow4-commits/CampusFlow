@@ -124,7 +124,7 @@ app.get('/api/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({
     status: 'ok',
-    message: 'SkillSwap API is running',
+    message: 'CampusFlow API is running',
     database: dbStatus,
     timestamp: new Date().toISOString()
   });
@@ -136,7 +136,7 @@ app.use(errorHandler);
 
 // Start server & initialize MongoDB connection + demo data
 server.listen(PORT, async () => {
-  console.log(`\n🚀 SkillSwap Server & Socket.IO running on http://localhost:${PORT}`);
+  console.log(`\n🚀 CampusFlow Server & Socket.IO running on http://localhost:${PORT}`);
   console.log(`🩺 Health check available at: http://localhost:${PORT}/api/health`);
   
   const connected = await connectDB();

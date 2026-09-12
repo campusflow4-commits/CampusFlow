@@ -17,7 +17,7 @@ export const ProtectedRoute = () => {
         gap: '16px'
       }}>
         <Loader2 className="animate-spin" size={40} color="#6366f1" />
-        <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Connecting to SkillSwap...</p>
+        <p style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>Connecting to CampusFlow...</p>
       </div>
     );
   }

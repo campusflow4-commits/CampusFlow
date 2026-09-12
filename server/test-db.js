@@ -8,7 +8,7 @@ async function testConnection() {
   const uri = process.env.MONGO_URI;
 
   console.log('----------------------------------------------------');
-  console.log('🔍 Testing SkillSwap MongoDB Atlas Connection...');
+  console.log('🔍 Testing CampusFlow MongoDB Atlas Connection...');
   console.log('----------------------------------------------------');
 
   if (!uri || uri.includes('PASTE_MY_CONNECTION_STRING_HERE') || uri.includes('PASTE_YOUR_MONGODB_ATLAS_CONNECTION_STRING_HERE')) {

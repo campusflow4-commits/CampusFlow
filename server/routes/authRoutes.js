@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
     }
 
     if (!email.toLowerCase().endsWith('@gmail.com')) {
-      return res.status(400).json({ message: 'Only Gmail addresses (@gmail.com) are accepted on SkillSwap.' });
+      return res.status(400).json({ message: 'Only Gmail addresses (@gmail.com) are accepted on CampusFlow.' });
     }
 
     if (password.length < 6) {

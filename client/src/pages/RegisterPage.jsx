@@ -67,7 +67,7 @@ export const RegisterPage = () => {
           <div className="brand-icon" style={{ margin: '0 auto 12px auto', width: '44px', height: '44px' }}>
             <Repeat size={24} />
           </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Join SkillSwap</h2>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Join CampusFlow</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
             Get 50 Starter Credits + 7-Day Free Trial
           </p>

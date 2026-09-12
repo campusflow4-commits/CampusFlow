@@ -323,7 +323,7 @@ export const SettingsPage = () => {
         </div>
 
         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px', lineHeight: 1.6 }}>
-          SkillSwap enforces basic active session protection. If your account is accessed from another browser or device, your current session will automatically terminate to protect your credits and student data.
+          CampusFlow enforces basic active session protection. If your account is accessed from another browser or device, your current session will automatically terminate to protect your credits and student data.
         </p>
 
         <div style={{

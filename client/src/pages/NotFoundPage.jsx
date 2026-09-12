@@ -21,7 +21,7 @@ export const NotFoundPage = () => {
         Oops! The skill page or study resource you are looking for does not exist.
       </p>
       <Link to="/" className="btn btn-primary">
-        <Home size={18} /> Return to SkillSwap
+        <Home size={18} /> Return to CampusFlow
       </Link>
     </div>
   );

@@ -41,7 +41,7 @@ export const Navbar = () => {
           <div className="brand-icon">
             <Repeat size={22} />
           </div>
-          <span>Skill<span className="text-gradient">Swap</span></span>
+          <span>Campus<span className="text-gradient">Flow</span></span>
         </Link>
 
         {/* Desktop Navigation Links */}
@@ -88,7 +88,7 @@ export const Navbar = () => {
           {user ? (
             <>
               {/* Credit Pill */}
-              <Link to="/settings#credits" className="credit-pill" title="Your SkillSwap Credits">
+              <Link to="/settings#credits" className="credit-pill" title="Your CampusFlow Credits">
                 <Coins size={16} />
                 <span>{user.credits}</span>
               </Link>
