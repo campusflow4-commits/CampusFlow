@@ -1,0 +1,34 @@
+# Environment variables and secrets
+.env
+.env*
+*.env
+*.env.*
+**/.env
+**/.env.*
+server/.env
+client/.env
+!.env.example
+!**/.env.example
+
+# Node dependencies
+node_modules/
+**/node_modules/
+
+# Logs
+*.log
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build artifacts
+dist/
+**/dist/
+build/
+**/build/
+
+# IDE / OS metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
