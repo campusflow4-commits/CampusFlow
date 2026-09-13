@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../services/api.js';
 import { Modal } from '../components/Modal.jsx';
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export const SkillExchangePage = () => {
+  const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('browse'); // 'browse' | 'swaps'
   const [students, setStudents] = useState([]);
@@ -118,6 +120,7 @@ export const SkillExchangePage = () => {
   const handleAcceptRequest = async (swapId) => {
     try {
       await api.put(`/swaps/${swapId}/accept`, {});
+      window.dispatchEvent(new CustomEvent('campusflow:refresh_notifications'));
       loadData();
     } catch (err) {
       alert(err.message);
@@ -127,6 +130,7 @@ export const SkillExchangePage = () => {
   const handleRejectRequest = async (swapId) => {
     try {
       await api.put(`/swaps/${swapId}/reject`, {});
+      window.dispatchEvent(new CustomEvent('campusflow:refresh_notifications'));
       loadData();
     } catch (err) {
       alert(err.message);
@@ -372,7 +376,7 @@ export const SkillExchangePage = () => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       {swap.status === 'pending' && (
                         <>
                           <button onClick={() => handleAcceptRequest(swap._id)} className="btn btn-emerald btn-sm">
@@ -384,14 +388,34 @@ export const SkillExchangePage = () => {
                         </>
                       )}
                       {swap.status === 'accepted' && (
-                        <button onClick={() => handleCompleteSwap(swap._id)} className="btn btn-primary btn-sm">
-                          <CheckCircle size={14} /> Complete & Earn Credits (+20)
-                        </button>
+                        <>
+                          <button
+                            onClick={() => navigate(`/chat?user=${swap.sender?._id}`)}
+                            className="btn btn-secondary btn-sm"
+                            title="Message Student"
+                          >
+                            <MessageSquare size={14} /> Message Student
+                          </button>
+                          <button onClick={() => handleCompleteSwap(swap._id)} className="btn btn-primary btn-sm">
+                            <CheckCircle size={14} /> Complete & Earn Credits (+20)
+                          </button>
+                        </>
                       )}
-                      {swap.status === 'completed' && !swap.ratingByReceiver?.stars && (
-                        <button onClick={() => { setSwapToRate(swap); setRatingModalOpen(true); }} className="btn btn-amber btn-sm">
-                          <Star size={14} fill="#fff" /> Rate Student
-                        </button>
+                      {swap.status === 'completed' && (
+                        <>
+                          <button
+                            onClick={() => navigate(`/chat?user=${swap.sender?._id}`)}
+                            className="btn btn-secondary btn-sm"
+                            title="Message Student"
+                          >
+                            <MessageSquare size={14} /> Message
+                          </button>
+                          {!swap.ratingByReceiver?.stars && (
+                            <button onClick={() => { setSwapToRate(swap); setRatingModalOpen(true); }} className="btn btn-amber btn-sm">
+                              <Star size={14} fill="#fff" /> Rate Student
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -429,11 +453,36 @@ export const SkillExchangePage = () => {
                       </p>
                     </div>
 
-                    <div>
-                      {swap.status === 'completed' && !swap.ratingBySender?.stars && (
-                        <button onClick={() => { setSwapToRate(swap); setRatingModalOpen(true); }} className="btn btn-amber btn-sm">
-                          <Star size={14} fill="#fff" /> Rate Experience
-                        </button>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {swap.status === 'accepted' && (
+                        <>
+                          <button
+                            onClick={() => navigate(`/chat?user=${swap.receiver?._id}`)}
+                            className="btn btn-secondary btn-sm"
+                            title="Message Student"
+                          >
+                            <MessageSquare size={14} /> Message Student
+                          </button>
+                          <button onClick={() => handleCompleteSwap(swap._id)} className="btn btn-primary btn-sm">
+                            <CheckCircle size={14} /> Complete & Earn Credits (+20)
+                          </button>
+                        </>
+                      )}
+                      {swap.status === 'completed' && (
+                        <>
+                          <button
+                            onClick={() => navigate(`/chat?user=${swap.receiver?._id}`)}
+                            className="btn btn-secondary btn-sm"
+                            title="Message Student"
+                          >
+                            <MessageSquare size={14} /> Message
+                          </button>
+                          {!swap.ratingBySender?.stars && (
+                            <button onClick={() => { setSwapToRate(swap); setRatingModalOpen(true); }} className="btn btn-amber btn-sm">
+                              <Star size={14} fill="#fff" /> Rate Experience
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

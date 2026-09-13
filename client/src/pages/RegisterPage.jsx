@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Repeat, Mail, Lock, User, GraduationCap, Building2, UserPlus, AlertCircle, Gift } from 'lucide-react';
+import { GraduationCap, Mail, Lock, User, Building2, UserPlus, AlertCircle, Gift, Eye, EyeOff } from 'lucide-react';
 
 export const RegisterPage = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +14,8 @@ export const RegisterPage = () => {
     confirmPassword: '',
     referralCodeInput: searchParams.get('ref') || ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +67,7 @@ export const RegisterPage = () => {
       <div className="glass-card" style={{ width: '100%', maxWidth: '500px', padding: '36px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div className="brand-icon" style={{ margin: '0 auto 12px auto', width: '44px', height: '44px' }}>
-            <Repeat size={24} />
+            <GraduationCap size={24} />
           </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Join CampusFlow</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
@@ -170,16 +172,35 @@ export const RegisterPage = () => {
               <label className="form-label">Password</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   required
                   className="form-input"
                   placeholder="Min 6 chars"
                   value={formData.password}
                   onChange={handleChange}
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '38px', paddingRight: '36px' }}
                 />
                 <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '12px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
 
@@ -187,16 +208,35 @@ export const RegisterPage = () => {
               <label className="form-label">Confirm Password</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   required
                   className="form-input"
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  style={{ paddingLeft: '38px' }}
+                  style={{ paddingLeft: '38px', paddingRight: '36px' }}
                 />
                 <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '12px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
             </div>
           </div>

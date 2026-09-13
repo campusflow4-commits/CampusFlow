@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
-import { Repeat, Mail, Lock, LogIn, AlertCircle, Sparkles, Smartphone } from 'lucide-react';
+import { GraduationCap, Mail, Lock, LogIn, AlertCircle, Eye, EyeOff, Smartphone } from 'lucide-react';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +58,7 @@ export const LoginPage = () => {
       <div className="glass-card" style={{ width: '100%', maxWidth: '440px', padding: '36px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div className="brand-icon" style={{ margin: '0 auto 12px auto', width: '44px', height: '44px' }}>
-            <Repeat size={24} />
+            <GraduationCap size={24} />
           </div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Student Login</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
@@ -126,15 +127,34 @@ export const LoginPage = () => {
             <label className="form-label">Password</label>
             <div style={{ position: 'relative' }}>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 className="form-input"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                style={{ paddingLeft: '38px' }}
+                style={{ paddingLeft: '38px', paddingRight: '40px' }}
               />
               <Lock size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '12px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 

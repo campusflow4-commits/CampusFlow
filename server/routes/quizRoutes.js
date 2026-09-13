@@ -21,6 +21,8 @@ router.get('/', protect, async (req, res) => {
       timeLimitMinutes: q.timeLimitMinutes,
       totalQuestions: q.questions.length,
       creditReward: q.creditReward,
+      passingPercentage: q.passingPercentage,
+      negativeMarksPerWrong: q.negativeMarksPerWrong ?? 0.25,
       isPassed: attemptedQuizIds.has(q._id.toString())
     }));
 
@@ -47,6 +49,9 @@ router.get('/:id', protect, async (req, res) => {
       title: quiz.title,
       category: quiz.category,
       description: quiz.description,
+      timeLimitMinutes: quiz.timeLimitMinutes,
+      passingPercentage: quiz.passingPercentage,
+      negativeMarksPerWrong: quiz.negativeMarksPerWrong ?? 0.25,
       creditReward: quiz.creditReward,
       questions: safeQuestions
     });
@@ -55,33 +60,52 @@ router.get('/:id', protect, async (req, res) => {
   }
 });
 
-// POST /api/quiz/:id/submit - Submit answers and calculate score & credits
+// POST /api/quiz/:id/submit - Submit answers and calculate score & credits with negative marking
 router.post('/:id/submit', protect, async (req, res) => {
   try {
     const { answers } = req.body; // array of numbers: selected option index for each question
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
 
-    let score = 0;
     const total = quiz.questions.length;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let unattemptedCount = 0;
+    const penalty = quiz.negativeMarksPerWrong !== undefined ? quiz.negativeMarksPerWrong : 0.25;
+
     const answerBreakdown = [];
 
     quiz.questions.forEach((q, idx) => {
       const userSelected = answers ? answers[idx] : null;
-      const isCorrect = userSelected === q.correctOptionIndex;
-      if (isCorrect) score += 1;
+      const isUnattempted = userSelected === null || userSelected === undefined || userSelected === -1;
+      const isCorrect = !isUnattempted && userSelected === q.correctOptionIndex;
+
+      if (isUnattempted) {
+        unattemptedCount += 1;
+      } else if (isCorrect) {
+        correctCount += 1;
+      } else {
+        wrongCount += 1;
+      }
 
       answerBreakdown.push({
         questionIndex: idx,
         questionText: q.questionText,
-        userAnswer: userSelected !== null && userSelected !== undefined ? q.options[userSelected] : 'No answer',
+        userAnswer: !isUnattempted ? q.options[userSelected] : 'Unattempted',
         correctAnswer: q.options[q.correctOptionIndex],
         isCorrect,
+        isUnattempted,
         explanation: q.explanation
       });
     });
 
-    const percentage = Math.round((score / total) * 100);
+    const positiveMarks = correctCount * 1;
+    const negativeMarks = parseFloat((wrongCount * penalty).toFixed(2));
+    const rawScore = positiveMarks - negativeMarks;
+    // Score clamped to min 0 as requested
+    const finalScore = Math.max(0, parseFloat(rawScore.toFixed(2)));
+
+    const percentage = Math.max(0, Math.round((finalScore / total) * 100));
     const passed = percentage >= quiz.passingPercentage;
     let creditsEarned = 0;
 
@@ -106,15 +130,26 @@ router.post('/:id/submit', protect, async (req, res) => {
     await QuizAttempt.create({
       user: req.user._id,
       quiz: quiz._id,
-      score,
+      score: finalScore,
       totalQuestions: total,
+      correctCount,
+      wrongCount,
+      unattemptedCount,
+      positiveMarks,
+      negativeMarks,
       passed,
       creditsEarned
     });
 
     res.json({
-      score,
+      score: finalScore,
       totalQuestions: total,
+      correctCount,
+      wrongCount,
+      unattemptedCount,
+      positiveMarks,
+      negativeMarks,
+      penaltyPerWrong: penalty,
       percentage,
       passed,
       creditsEarned,

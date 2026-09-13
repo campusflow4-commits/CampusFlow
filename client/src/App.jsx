@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 import { ProtectedRoute } from './components/ProtectedRoute.jsx';
 import { Navbar } from './components/Navbar.jsx';
+import { Sidebar } from './components/Sidebar.jsx';
 import { Footer } from './components/Footer.jsx';
 
 // Pages
@@ -26,38 +27,75 @@ import { NotFoundPage } from './pages/NotFoundPage.jsx';
 
 function AppRoutes() {
   const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Apply persisted font preference across the entire application
+  useEffect(() => {
+    const savedFont = localStorage.getItem('campusflow_font') || 'default';
+    if (savedFont && savedFont !== 'default') {
+      document.documentElement.setAttribute('data-font', savedFont);
+      document.body.setAttribute('data-font', savedFont);
+    } else {
+      document.documentElement.removeAttribute('data-font');
+      document.body.removeAttribute('data-font');
+    }
+  }, []);
+
+  // Public visitor layout (Landing, Login, Register)
+  if (!user) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar />
+        <main style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Authenticated Student App Layout (Left Vertical Sidebar + Top Header + Content Area)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Navbar />
-      <main style={{ flex: 1 }}>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
-          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
+    <div className="app-shell">
+      {/* Left Vertical Sidebar with Grouped Navigation */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-          {/* Protected Student Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/swaps" element={<SkillExchangePage />} />
-            <Route path="/matches" element={<SmartMatchesPage />} />
-            <Route path="/videos" element={<VideosPage />} />
-            <Route path="/quizzes" element={<QuizPage />} />
-            <Route path="/doubts" element={<DoubtsPage />} />
-            <Route path="/planner" element={<PlannerPage />} />
-            <Route path="/notes" element={<NotesPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="/invite" element={<InviteFriendsPage />} />
-            <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Route>
+      {/* Main Content Area */}
+      <div className="app-main">
+        <Navbar onToggleSidebar={() => setSidebarOpen(prev => !prev)} />
+        <main className="app-body">
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/register" element={<Navigate to="/dashboard" replace />} />
 
-          {/* 404 Catch-All */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </main>
-      <Footer />
+            {/* Protected Student Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/swaps" element={<SkillExchangePage />} />
+              <Route path="/matches" element={<SmartMatchesPage />} />
+              <Route path="/videos" element={<VideosPage />} />
+              <Route path="/quizzes" element={<QuizPage />} />
+              <Route path="/doubts" element={<DoubtsPage />} />
+              <Route path="/planner" element={<PlannerPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/chat" element={<ChatPage />} />
+              <Route path="/invite" element={<InviteFriendsPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+
+            {/* 404 Catch-All */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }

@@ -5,13 +5,11 @@ import {
   Award, 
   CheckCircle2, 
   XCircle, 
-  HelpCircle, 
   ArrowRight, 
   ArrowLeft, 
   Coins, 
   Sparkles, 
-  RotateCcw, 
-  Clock 
+  RotateCcw 
 } from 'lucide-react';
 
 export const QuizPage = () => {
@@ -116,16 +114,20 @@ export const QuizPage = () => {
 
               <div style={{
                 display: 'flex',
-                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
                 fontSize: '0.85rem',
                 color: 'var(--text-muted)',
-                marginBottom: '20px',
+                marginBottom: '16px',
                 borderTop: '1px solid var(--border-color)',
                 paddingTop: '12px'
               }}>
                 <span>Questions: {quiz.totalQuestions}</span>
-                <span>Time Limit: {quiz.timeLimitMinutes} min</span>
+                <span>Time: {quiz.timeLimitMinutes} min</span>
                 <span>Passing: 60%</span>
+                <span style={{ color: '#fb7185', fontWeight: 600 }}>
+                  Penalty: -{quiz.negativeMarksPerWrong ?? 0.25} / wrong
+                </span>
               </div>
 
               <button
@@ -139,8 +141,8 @@ export const QuizPage = () => {
           ))}
         </div>
       ) : quizResult ? (
-        /* Quiz Results Screen */
-        <div className="glass-card" style={{ maxWidth: '700px', margin: '0 auto', padding: '36px' }}>
+        /* Quiz Results Screen with Negative Marking Breakdown */
+        <div className="glass-card" style={{ maxWidth: '720px', margin: '0 auto', padding: '36px' }}>
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
             <div style={{
               width: '64px',
@@ -157,10 +159,10 @@ export const QuizPage = () => {
             </div>
 
             <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>
-              {quizResult.passed ? '🎉 Congratulations, You Passed!' : 'Almost There! Keep Practicing'}
+              {quizResult.passed ? '🎉 Congratulations, You Passed!' : 'Assessment Completed'}
             </h2>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-              You scored {quizResult.score} out of {quizResult.totalQuestions} ({quizResult.percentage}%)
+            <p style={{ color: 'var(--text-secondary)', marginTop: '6px' }}>
+              {quizResult.passed ? 'Your knowledge was validated and credits have been credited!' : 'Review your incorrect answers below and practice to retake.'}
             </p>
 
             {quizResult.creditsEarned > 0 && (
@@ -170,32 +172,125 @@ export const QuizPage = () => {
                 gap: '8px',
                 background: 'rgba(245, 158, 11, 0.15)',
                 color: '#fcd34d',
-                padding: '8px 16px',
+                padding: '8px 18px',
                 borderRadius: 'var(--radius-full)',
                 fontWeight: 700,
-                marginTop: '16px'
+                marginTop: '16px',
+                border: '1px solid rgba(245, 158, 11, 0.3)'
               }}>
                 <Sparkles size={18} /> +{quizResult.creditsEarned} Credits Added to Your Account!
               </div>
             )}
           </div>
 
+          {/* Detailed Score Breakdown (Correct, Wrong, Unattempted, Marks) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: '12px',
+            marginBottom: '28px'
+          }}>
+            <div style={{
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Correct</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
+                {quizResult.correctCount ?? 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#6ee7b7' }}>
+                +{quizResult.positiveMarks ?? (quizResult.correctCount || 0)} marks
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(244, 63, 94, 0.08)',
+              border: '1px solid rgba(244, 63, 94, 0.25)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Wrong</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f43f5e', marginTop: '2px' }}>
+                {quizResult.wrongCount ?? 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#fb7185' }}>
+                -{quizResult.negativeMarks ?? 0} penalty
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(148, 163, 184, 0.08)',
+              border: '1px solid rgba(148, 163, 184, 0.2)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Unattempted</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#94a3b8', marginTop: '2px' }}>
+                {quizResult.unattemptedCount ?? 0}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>0 marks</div>
+            </div>
+
+            <div style={{
+              background: 'rgba(99, 102, 241, 0.1)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: 'var(--radius-md)',
+              padding: '14px',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Final Score</div>
+              <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#a5b4fc', marginTop: '2px' }}>
+                {quizResult.score} / {quizResult.totalQuestions}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                {quizResult.percentage}% (Min: 0)
+              </div>
+            </div>
+          </div>
+
           {/* Detailed Question Breakdown */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '28px' }}>
             <h4 style={{ fontSize: '1rem', fontWeight: 700 }}>Question Breakdown:</h4>
-            {quizResult.breakdown.map((item, idx) => (
+            {quizResult.breakdown?.map((item, idx) => (
               <div key={idx} style={{
                 padding: '16px',
                 borderRadius: 'var(--radius-md)',
-                background: item.isCorrect ? 'rgba(16,185,129,0.06)' : 'rgba(244,63,94,0.06)',
-                border: `1px solid ${item.isCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)'}`
+                background: item.isCorrect 
+                  ? 'rgba(16,185,129,0.06)' 
+                  : item.userAnswer === 'Unattempted' 
+                  ? 'rgba(148,163,184,0.06)' 
+                  : 'rgba(244,63,94,0.06)',
+                border: `1px solid ${
+                  item.isCorrect 
+                    ? 'rgba(16,185,129,0.2)' 
+                    : item.userAnswer === 'Unattempted' 
+                    ? 'rgba(148,163,184,0.2)' 
+                    : 'rgba(244,63,94,0.2)'
+                }`
               }}>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '6px' }}>
-                  Q{idx + 1}. {item.questionText}
-                </p>
-                <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <p style={{ color: item.isCorrect ? '#6ee7b7' : '#fb7185' }}>
-                    Your Answer: {item.userAnswer} {item.isCorrect ? '✓' : '✗'}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                    Q{idx + 1}. {item.questionText}
+                  </p>
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    background: item.isCorrect ? 'rgba(16,185,129,0.15)' : item.userAnswer === 'Unattempted' ? 'rgba(148,163,184,0.15)' : 'rgba(244,63,94,0.15)',
+                    color: item.isCorrect ? '#6ee7b7' : item.userAnswer === 'Unattempted' ? '#94a3b8' : '#fb7185'
+                  }}>
+                    {item.isCorrect ? '+1.0' : item.userAnswer === 'Unattempted' ? '0.0' : `-${quizResult.negativeMarksPerWrong || 0.25}`}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <p style={{ color: item.isCorrect ? '#6ee7b7' : item.userAnswer === 'Unattempted' ? '#94a3b8' : '#fb7185' }}>
+                    Your Answer: {item.userAnswer} {item.isCorrect ? '✓' : item.userAnswer === 'Unattempted' ? '(Skipped)' : '✗'}
                   </p>
                   {!item.isCorrect && (
                     <p style={{ color: '#6ee7b7' }}>Correct Answer: {item.correctAnswer}</p>
@@ -231,7 +326,7 @@ export const QuizPage = () => {
         /* Question Answering View */
         <div className="glass-card" style={{ maxWidth: '720px', margin: '0 auto', padding: '36px' }}>
           {/* Progress & Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
               <span className="badge badge-primary">{activeQuiz.category}</span>
               <h3 style={{ fontSize: '1.2rem', marginTop: '6px' }}>{activeQuiz.title}</h3>
@@ -239,6 +334,30 @@ export const QuizPage = () => {
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
               Question {currentQuestionIdx + 1} of {activeQuiz.questions.length}
             </span>
+          </div>
+
+          {/* Scoring Rules Notice */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'rgba(99, 102, 241, 0.08)',
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '10px 14px',
+            marginBottom: '20px',
+            fontSize: '0.82rem',
+            color: 'var(--text-secondary)',
+            flexWrap: 'wrap',
+            gap: '8px'
+          }}>
+            <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+              ⚡ Scoring Rule:
+            </span>
+            <span style={{ color: '#6ee7b7' }}>Correct: +1.0</span>
+            <span style={{ color: '#fb7185' }}>Wrong: -{activeQuiz.negativeMarksPerWrong ?? 0.25}</span>
+            <span style={{ color: 'var(--text-muted)' }}>Unattempted: 0</span>
+            <span style={{ color: '#a5b4fc' }}>Min Score: 0</span>
           </div>
 
           {/* Question Text */}

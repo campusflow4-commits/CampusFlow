@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../services/api.js';
 import { Modal } from '../components/Modal.jsx';
-import { BookOpen, Plus, Search, Edit3, Trash2, Tag } from 'lucide-react';
+import { NotebookPen, Plus, Search, Edit3, Trash2, Zap, Send } from 'lucide-react';
 
 export const NotesPage = () => {
   const [notes, setNotes] = useState([]);
@@ -9,6 +9,12 @@ export const NotesPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
 
+  // Short Note state
+  const [quickTitle, setQuickTitle] = useState('');
+  const [quickContent, setQuickContent] = useState('');
+  const [savingQuick, setSavingQuick] = useState(false);
+
+  // Modal Note state
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('Computer Science');
@@ -27,6 +33,28 @@ export const NotesPage = () => {
   useEffect(() => {
     fetchNotes();
   }, [search]);
+
+  const handleCreateQuickNote = async (e) => {
+    e.preventDefault();
+    if (!quickTitle.trim() || !quickContent.trim()) return;
+
+    setSavingQuick(true);
+    try {
+      await api.post('/notes', {
+        title: quickTitle.trim(),
+        content: quickContent.trim(),
+        category: 'Quick Notes',
+        color: '#10b981'
+      });
+      setQuickTitle('');
+      setQuickContent('');
+      await fetchNotes();
+    } catch (err) {
+      alert(err.message || 'Failed to save quick note');
+    } finally {
+      setSavingQuick(false);
+    }
+  };
 
   const openCreateModal = () => {
     setEditingNote(null);
@@ -74,27 +102,76 @@ export const NotesPage = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '36px 20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '28px' }}>
+    <div className="container" style={{ padding: '32px 20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
-          <div className="badge badge-primary" style={{ marginBottom: '12px' }}>
-            <BookOpen size={14} /> Personal Knowledge Repository
+          <div className="badge badge-primary" style={{ marginBottom: '8px' }}>
+            <NotebookPen size={14} /> Personal Knowledge Repository
           </div>
-          <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.5px' }}>
             Study <span className="text-gradient">Notes</span>
           </h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-            Capture revision notes, code templates, formula sheets, and peer swap takeaways.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>
+            Capture quick ideas, revision notes, formula sheets, and peer swap takeaways.
           </p>
         </div>
 
-        <button onClick={openCreateModal} className="btn btn-primary">
-          <Plus size={18} /> New Note
+        <button onClick={openCreateModal} className="btn btn-secondary btn-sm">
+          <Plus size={16} /> Detailed Note
         </button>
       </div>
 
-      {/* Search */}
-      <div className="glass-card" style={{ padding: '16px 20px', marginBottom: '28px' }}>
+      {/* Lightweight Quick Note / Short Note Composer */}
+      <div className="glass-card" style={{
+        padding: '16px 20px',
+        marginBottom: '24px',
+        border: '1px solid rgba(99, 102, 241, 0.25)',
+        background: 'rgba(30, 41, 59, 0.45)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Zap size={15} color="#6366f1" />
+          <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+            Quick Note
+          </span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            — jot down a fast thought without opening an editor
+          </span>
+        </div>
+
+        <form onSubmit={handleCreateQuickNote} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              placeholder="Short note title..."
+              className="form-input"
+              value={quickTitle}
+              onChange={(e) => setQuickTitle(e.target.value)}
+              style={{ flex: '1 1 200px', fontSize: '0.88rem', padding: '8px 12px' }}
+              required
+            />
+            <input
+              type="text"
+              placeholder="Write short content or bullet points..."
+              className="form-input"
+              value={quickContent}
+              onChange={(e) => setQuickContent(e.target.value)}
+              style={{ flex: '2 1 320px', fontSize: '0.88rem', padding: '8px 12px' }}
+              required
+            />
+            <button
+              type="submit"
+              disabled={savingQuick || !quickTitle.trim() || !quickContent.trim()}
+              className="btn btn-primary btn-sm"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+            >
+              <Send size={14} /> {savingQuick ? 'Saving...' : 'Save Quick Note'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Search Bar */}
+      <div className="glass-card" style={{ padding: '12px 16px', marginBottom: '24px' }}>
         <div style={{ position: 'relative' }}>
           <input
             type="text"
@@ -102,9 +179,9 @@ export const NotesPage = () => {
             className="form-input"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ paddingLeft: '38px' }}
+            style={{ paddingLeft: '36px', fontSize: '0.88rem', height: '40px' }}
           />
-          <Search size={16} color="#64748b" style={{ position: 'absolute', left: '12px', top: '14px' }} />
+          <Search size={15} color="#64748b" style={{ position: 'absolute', left: '12px', top: '12px' }} />
         </div>
       </div>
 
@@ -148,8 +225,8 @@ export const NotesPage = () => {
         </div>
       ) : (
         <div className="empty-state glass-card">
-          <BookOpen className="empty-state-icon" />
-          <p>No study notes found. Click "+ New Note" to save your thoughts.</p>
+          <NotebookPen className="empty-state-icon" />
+          <p>No study notes found yet. Jot down a quick note above or click "+ Detailed Note".</p>
         </div>
       )}
 

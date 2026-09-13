@@ -15,16 +15,22 @@ router.get('/conversations', protect, async (req, res) => {
       .populate('lastMessage.sender', 'name')
       .sort({ updatedAt: -1 });
 
-    // Format so the frontend sees the "other" student directly
-    const formatted = conversations.map(c => {
+    // Format so the frontend sees the "other" student directly along with unread messages count
+    const formatted = await Promise.all(conversations.map(async (c) => {
       const otherUser = c.participants.find(p => p._id.toString() !== req.user._id.toString());
+      const unreadCount = await Message.countDocuments({
+        conversation: c._id,
+        receiver: req.user._id,
+        read: false
+      });
       return {
         _id: c._id,
         participant: otherUser || req.user,
         lastMessage: c.lastMessage,
+        unreadCount,
         updatedAt: c.updatedAt
       };
-    });
+    }));
 
     res.json(formatted);
   } catch (error) {

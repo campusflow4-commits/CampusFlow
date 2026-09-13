@@ -3,9 +3,40 @@ import { SwapRequest } from '../models/SwapRequest.js';
 import { QuizAttempt } from '../models/Quiz.js';
 import { VideoProgress } from '../models/Video.js';
 import { CreditTransaction } from '../models/CreditTransaction.js';
+import { Message } from '../models/Chat.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
+
+// GET /api/stats/notifications - Real-time notification counters & items for Navbar
+router.get('/notifications', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const [pendingSwaps, pendingSwapsCount, unreadMessages, unreadMessagesCount] = await Promise.all([
+      SwapRequest.find({ receiver: userId, status: 'pending' })
+        .populate('sender', 'name avatar year')
+        .sort({ createdAt: -1 })
+        .limit(5),
+      SwapRequest.countDocuments({ receiver: userId, status: 'pending' }),
+      Message.find({ receiver: userId, read: false })
+        .populate('sender', 'name avatar year')
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Message.countDocuments({ receiver: userId, read: false })
+    ]);
+
+    res.json({
+      pendingSwapsCount,
+      unreadMessagesCount,
+      totalCount: pendingSwapsCount + unreadMessagesCount,
+      pendingSwaps,
+      unreadMessages
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch notification summary.' });
+  }
+});
 
 // GET /api/stats/progress - Recharts-ready learning & activity progression
 router.get('/progress', protect, async (req, res) => {

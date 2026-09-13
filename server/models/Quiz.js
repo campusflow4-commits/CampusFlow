@@ -45,6 +45,10 @@ const quizSchema = new mongoose.Schema({
     type: Number,
     default: 25
   },
+  negativeMarksPerWrong: {
+    type: Number,
+    default: 0.25 // Configurable penalty for wrong answer (default -0.25 marks)
+  },
   questions: [questionSchema]
 }, {
   timestamps: true
@@ -68,6 +72,26 @@ const quizAttemptSchema = new mongoose.Schema({
   totalQuestions: {
     type: Number,
     required: true
+  },
+  correctCount: {
+    type: Number,
+    default: 0
+  },
+  wrongCount: {
+    type: Number,
+    default: 0
+  },
+  unattemptedCount: {
+    type: Number,
+    default: 0
+  },
+  positiveMarks: {
+    type: Number,
+    default: 0
+  },
+  negativeMarks: {
+    type: Number,
+    default: 0
   },
   passed: {
     type: Boolean,

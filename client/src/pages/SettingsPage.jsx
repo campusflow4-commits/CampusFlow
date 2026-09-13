@@ -5,16 +5,21 @@ import {
   User, 
   Lock, 
   Coins, 
-  ShieldCheck, 
   Sparkles, 
   Smartphone, 
-  CheckCircle, 
-  AlertCircle, 
-  Save 
+  Save,
+  Type,
+  RotateCcw,
+  Eye,
+  EyeOff,
+  Check
 } from 'lucide-react';
 
 export const SettingsPage = () => {
-  const { user, updateProfile, refreshUser, logout } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
+
+  // Font customization state
+  const [selectedFont, setSelectedFont] = useState('system');
 
   // Profile fields
   const [name, setName] = useState(user?.name || '');
@@ -28,6 +33,9 @@ export const SettingsPage = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   // Credits history
   const [creditLedger, setCreditLedger] = useState({ currentBalance: 50, transactions: [] });
@@ -39,6 +47,9 @@ export const SettingsPage = () => {
   const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
+    const saved = localStorage.getItem('campusflow_font') || 'system';
+    setSelectedFont(saved);
+
     if (user) {
       setName(user.name);
       setYear(user.year);
@@ -59,6 +70,18 @@ export const SettingsPage = () => {
 
     loadCredits();
   }, [user]);
+
+  const handleFontChange = (fontKey) => {
+    setSelectedFont(fontKey);
+    localStorage.setItem('campusflow_font', fontKey);
+    if (fontKey === 'system') {
+      document.documentElement.removeAttribute('data-font');
+      document.body.removeAttribute('data-font');
+    } else {
+      document.documentElement.setAttribute('data-font', fontKey);
+      document.body.setAttribute('data-font', fontKey);
+    }
+  };
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -114,21 +137,21 @@ export const SettingsPage = () => {
   const trialDays = user?.trialDaysRemaining ?? 7;
 
   return (
-    <div className="container" style={{ padding: '36px 20px', maxWidth: '860px' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 800 }}>
+    <div className="container" style={{ padding: '32px 20px', maxWidth: '840px' }}>
+      <div style={{ marginBottom: '28px' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.5px' }}>
           Account <span className="text-gradient">Settings</span>
         </h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>
-          Manage your student identity, credits ledger, device session, and security.
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '2px' }}>
+          Customize your appearance, student identity, password security, and active sessions.
         </p>
       </div>
 
       {/* Free Trial Banner */}
       <div className="glass-card" style={{
-        padding: '20px 24px',
-        marginBottom: '28px',
-        border: '1px solid rgba(99, 102, 241, 0.3)',
+        padding: '18px 22px',
+        marginBottom: '24px',
+        border: '1px solid rgba(99, 102, 241, 0.25)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -136,24 +159,126 @@ export const SettingsPage = () => {
         gap: '12px'
       }}>
         <div>
-          <span className="badge badge-primary" style={{ marginBottom: '6px' }}>
+          <span className="badge badge-primary" style={{ marginBottom: '4px' }}>
             <Sparkles size={13} /> Active Plan: Student Free Trial
           </span>
-          <h3 style={{ fontSize: '1.15rem' }}>{trialDays} Days Remaining on 7-Day Free Trial</h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>{trialDays} Days Remaining on 7-Day Free Trial</h3>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
             Valid until {new Date(user?.trialEndDate || Date.now() + 7 * 86400000).toLocaleDateString()}
           </p>
         </div>
-        <span className="badge badge-emerald" style={{ padding: '8px 16px', fontSize: '0.9rem' }}>
+        <span className="badge badge-emerald" style={{ padding: '6px 14px', fontSize: '0.85rem' }}>
           ✓ All Platform Features Unlocked
         </span>
       </div>
 
-      {/* Edit Profile */}
-      <div className="glass-card" style={{ padding: '28px', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <User size={20} color="#6366f1" />
-          <h3 style={{ fontSize: '1.25rem' }}>Student Profile Information</h3>
+      {/* Section 1: Appearance & Typography */}
+      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Type size={18} color="#6366f1" />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Appearance & Typography</h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleFontChange('system')}
+            className="btn btn-secondary btn-sm"
+            style={{ fontSize: '0.78rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+          >
+            <RotateCcw size={13} /> Reset to Default
+          </button>
+        </div>
+
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+          Choose your preferred reading font. Your selection applies immediately across all pages and is saved to your browser.
+        </p>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '12px'
+        }}>
+          {/* System Default */}
+          <button
+            type="button"
+            onClick={() => handleFontChange('system')}
+            style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: `1.5px solid ${selectedFont === 'system' ? '#6366f1' : 'var(--border-color)'}`,
+              background: selectedFont === 'system' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-surface)',
+              color: selectedFont === 'system' ? '#ffffff' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>System / Default</span>
+              {selectedFont === 'system' && <Check size={16} color="#6366f1" />}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Clean platform native sans font
+            </div>
+          </button>
+
+          {/* Inter */}
+          <button
+            type="button"
+            onClick={() => handleFontChange('inter')}
+            style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: `1.5px solid ${selectedFont === 'inter' ? '#6366f1' : 'var(--border-color)'}`,
+              background: selectedFont === 'inter' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-surface)',
+              color: selectedFont === 'inter' ? '#ffffff' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: "'Inter', sans-serif",
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Inter</span>
+              {selectedFont === 'inter' && <Check size={16} color="#6366f1" />}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Modern, high-legibility UI sans
+            </div>
+          </button>
+
+          {/* Poppins */}
+          <button
+            type="button"
+            onClick={() => handleFontChange('poppins')}
+            style={{
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: `1.5px solid ${selectedFont === 'poppins' ? '#6366f1' : 'var(--border-color)'}`,
+              background: selectedFont === 'poppins' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-surface)',
+              color: selectedFont === 'poppins' ? '#ffffff' : 'var(--text-secondary)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              fontFamily: "'Poppins', sans-serif",
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>Poppins</span>
+              {selectedFont === 'poppins' && <Check size={16} color="#6366f1" />}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Geometric, student-friendly rounded sans
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Section 2: Student Identity & Profile */}
+      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+          <User size={18} color="#6366f1" />
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Student Identity & Bio</h3>
         </div>
 
         {profileMsg && (
@@ -244,17 +369,17 @@ export const SettingsPage = () => {
             />
           </div>
 
-          <button type="submit" disabled={savingProfile} className="btn btn-primary" style={{ padding: '10px 24px' }}>
-            <Save size={16} /> {savingProfile ? 'Saving...' : 'Save Profile Changes'}
+          <button type="submit" disabled={savingProfile} className="btn btn-primary btn-sm" style={{ padding: '8px 20px' }}>
+            <Save size={15} /> {savingProfile ? 'Saving...' : 'Save Profile Changes'}
           </button>
         </form>
       </div>
 
-      {/* Change Password */}
-      <div className="glass-card" style={{ padding: '28px', marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <Lock size={20} color="#8b5cf6" />
-          <h3 style={{ fontSize: '1.25rem' }}>Change Account Password</h3>
+      {/* Section 3: Password Security with Eye Toggles */}
+      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+          <Lock size={18} color="#8b5cf6" />
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Security & Password</h3>
         </div>
 
         {passwordMsg && (
@@ -273,43 +398,100 @@ export const SettingsPage = () => {
         <form onSubmit={handleChangePassword}>
           <div className="form-group">
             <label className="form-label">Current Password</label>
-            <input
-              type="password"
-              required
-              className="form-input"
-              placeholder="••••••••"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showCurrentPw ? 'text' : 'password'}
+                required
+                className="form-input"
+                placeholder="••••••••"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                style={{ paddingRight: '38px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPw(!showCurrentPw)}
+                aria-label={showCurrentPw ? "Hide current password" : "Show current password"}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '11px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer'
+                }}
+              >
+                {showCurrentPw ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">New Password</label>
-              <input
-                type="password"
-                required
-                className="form-input"
-                placeholder="Min 6 characters"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showNewPw ? 'text' : 'password'}
+                  required
+                  className="form-input"
+                  placeholder="Min 6 characters"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  style={{ paddingRight: '38px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  aria-label={showNewPw ? "Hide new password" : "Show new password"}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '11px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showNewPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
 
             <div className="form-group">
               <label className="form-label">Confirm New Password</label>
-              <input
-                type="password"
-                required
-                className="form-input"
-                placeholder="••••••••"
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showConfirmPw ? 'text' : 'password'}
+                  required
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  style={{ paddingRight: '38px' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  aria-label={showConfirmPw ? "Hide confirm password" : "Show confirm password"}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '11px',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
             </div>
           </div>
 
-          <button type="submit" disabled={savingPassword} className="btn btn-secondary" style={{ padding: '10px 24px' }}>
+          <button type="submit" disabled={savingPassword} className="btn btn-secondary btn-sm" style={{ padding: '8px 20px' }}>
             {savingPassword ? 'Updating...' : 'Update Password'}
           </button>
         </form>

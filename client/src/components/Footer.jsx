@@ -1,13 +1,16 @@
 import React from 'react';
-import { Repeat, Heart } from 'lucide-react';
+import { GraduationCap, Heart } from 'lucide-react';
 
 export const Footer = () => {
+  const creators = ['Akshra', 'Vanshika', 'Parth', 'Kashif'];
+
   return (
     <footer style={{
       borderTop: '1px solid var(--border-color)',
-      padding: '40px 0 24px 0',
+      padding: '32px 0 24px 0',
       marginTop: '60px',
-      background: 'rgba(11, 15, 25, 0.7)'
+      background: 'rgba(11, 15, 25, 0.4)',
+      backdropFilter: 'blur(8px)'
     }}>
       <div className="container" style={{
         display: 'flex',
@@ -16,22 +19,47 @@ export const Footer = () => {
         alignItems: 'center',
         gap: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="brand-icon" style={{ width: '32px', height: '32px' }}>
-            <Repeat size={18} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <div className="brand-icon" style={{ width: '30px', height: '30px' }}>
+            <GraduationCap size={16} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: '1.15rem' }}>
+          <span style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>
             Campus<span className="text-gradient">Flow</span>
           </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginLeft: '12px' }}>
-            "Learn a skill. Teach a skill. Grow together."
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginLeft: '8px' }}>
+            Learn a skill. Teach a skill. Grow together.
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-          <span>Crafted for student peer-learning</span>
-          <Heart size={14} color="#f43f5e" fill="#f43f5e" />
-          <span>National Hackathon Edition 2026</span>
+        {/* Creator Team Credits */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px',
+          flexWrap: 'wrap',
+          color: 'var(--text-muted)',
+          fontSize: '0.85rem'
+        }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-secondary)' }}>
+            <span>Created by</span>
+            <Heart size={13} color="#ec4899" fill="#ec4899" />
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            {creators.map((name, index) => (
+              <React.Fragment key={name}>
+                <span style={{
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  letterSpacing: '0.2px'
+                }}>
+                  {name}
+                </span>
+                {index < creators.length - 1 && (
+                  <span style={{ color: 'var(--border-color)', userSelect: 'none' }}>•</span>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

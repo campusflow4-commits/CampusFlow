@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSocket } from '../context/SocketContext.jsx';
 import { api } from '../services/api.js';
@@ -14,6 +15,9 @@ import {
 } from 'lucide-react';
 
 export const ChatPage = () => {
+  const [searchParams] = useSearchParams();
+  const targetUserId = searchParams.get('user');
+
   const { user } = useAuth();
   const { socket, isUserOnline } = useSocket();
 
@@ -30,24 +34,55 @@ export const ChatPage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // 1. Fetch all conversations on mount
+  // 1. Fetch all conversations on mount & support ?user= query param
   useEffect(() => {
+    let isMounted = true;
+
     const loadConversations = async () => {
       try {
         const data = await api.get('/chat/conversations');
+        if (!isMounted) return;
         setConversations(data);
-        if (data.length > 0 && !activePartner) {
+
+        if (targetUserId) {
+          const existing = data.find(c => c.participant?._id === targetUserId);
+          if (existing) {
+            setActivePartner(existing.participant);
+          } else {
+            // Target user is not in existing conversation list yet (e.g. freshly accepted swap)
+            try {
+              const directChat = await api.get(`/chat/messages/${targetUserId}`);
+              if (isMounted && directChat.targetUser) {
+                setActivePartner(directChat.targetUser);
+                setConversations(prev => {
+                  if (prev.some(c => c.participant?._id === targetUserId)) return prev;
+                  return [{
+                    _id: directChat.conversationId,
+                    participant: directChat.targetUser,
+                    lastMessage: null,
+                    unreadCount: 0,
+                    updatedAt: new Date()
+                  }, ...prev];
+                });
+              }
+            } catch (err) {
+              console.error('Failed to initialize direct chat with user:', err);
+              if (data.length > 0) setActivePartner(data[0].participant);
+            }
+          }
+        } else if (data.length > 0 && !activePartner) {
           setActivePartner(data[0].participant);
         }
       } catch (err) {
         console.error(err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadConversations();
-  }, []);
+    return () => { isMounted = false; };
+  }, [targetUserId]);
 
   // 2. Fetch messages when active partner changes
   useEffect(() => {
@@ -58,6 +93,12 @@ export const ChatPage = () => {
         const data = await api.get(`/chat/messages/${activePartner._id}`);
         setMessages(data.messages || []);
         scrollToBottom();
+
+        // Clear unread count for this conversation in state & notify navbar
+        setConversations(prev => prev.map(c => 
+          c.participant?._id === activePartner._id ? { ...c, unreadCount: 0 } : c
+        ));
+        window.dispatchEvent(new CustomEvent('campusflow:refresh_notifications'));
 
         // Join room via socket
         if (socket && user) {
@@ -197,9 +238,24 @@ export const ChatPage = () => {
                     <div style={{ flex: 1, overflow: 'hidden' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>{partner.name}</p>
-                        <span style={{ fontSize: '0.7rem', color: online ? '#10b981' : 'var(--text-muted)' }}>
-                          {online ? 'Online' : 'Offline'}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {conv.unreadCount > 0 && (
+                            <span style={{
+                              background: '#f43f5e',
+                              color: '#ffffff',
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              borderRadius: '999px',
+                              padding: '1px 6px',
+                              lineHeight: '1.2'
+                            }}>
+                              {conv.unreadCount}
+                            </span>
+                          )}
+                          <span style={{ fontSize: '0.7rem', color: online ? '#10b981' : 'var(--text-muted)' }}>
+                            {online ? 'Online' : 'Offline'}
+                          </span>
+                        </div>
                       </div>
                       <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                         {conv.lastMessage?.text || `${partner.year} student`}
