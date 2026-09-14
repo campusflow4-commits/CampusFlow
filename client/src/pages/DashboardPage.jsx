@@ -8,6 +8,7 @@ import {
   Clock, History, ArrowRight, Video, FileText, LayoutDashboard, Target
 } from 'lucide-react';
 import heroBg from '../assets/hero_student_night.jpg';
+import waveBg from '../assets/wave_bg.jpg';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
@@ -179,7 +180,28 @@ export const DashboardPage = () => {
         </Link>
       </div>
 
+      
+      {/* --- BACKGROUND WRAPPER FOR GRAPH AND CARDS --- */}
+      <div style={{ position: 'relative', width: '100%' }}>
+        {/* Decorative Wave Background (Pointer Events None so it sits purely behind) */}
+        <div style={{
+          position: 'absolute',
+          top: '-40px', left: '-40px', right: '-40px', bottom: '-40px',
+          backgroundImage: `url(${waveBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          opacity: 0.5,
+          zIndex: 0,
+          pointerEvents: 'none',
+          maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)'
+        }} />
+        
+        {/* Content Container (Needs zIndex to sit above background) */}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+
       {/* 2. Main Analytics - 70/30 Split */}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
         
         {/* Left: Learning Progress Graph (70%) */}
@@ -451,7 +473,12 @@ export const DashboardPage = () => {
       </div>
       </div>
 
+      
+        </div>
+      </div>
+      
       {/* Footer */}
+
       <div style={{ textAlign: 'center', padding: '30px 20px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '20px' }}>
         <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'rgba(255,255,255,0.5)', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>CampusFlow</h2>
         <p style={{ fontSize: '0.8rem', marginBottom: '12px' }}>Learn &bull; Collaborate &bull; Grow &bull; Succeed</p>
