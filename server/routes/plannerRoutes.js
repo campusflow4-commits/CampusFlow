@@ -1,5 +1,5 @@
 import express from 'express';
-import { Todo, Deadline, Practical, Timetable } from '../models/Planner.js';
+import { Todo, Deadline, Practical, Timetable, Event } from '../models/Planner.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -242,6 +242,68 @@ router.delete('/timetable/:id', protect, async (req, res) => {
     res.json({ message: 'Class removed from timetable.' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete class.' });
+  }
+});
+
+// --- EVENTS (CALENDAR) ---
+router.get('/events', protect, async (req, res) => {
+  try {
+    const events = await Event.find({ user: req.user._id }).sort({ date: 1 });
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch events.' });
+  }
+});
+
+router.post('/events', protect, async (req, res) => {
+  try {
+    const { title, eventType, date, startTime, endTime, description, color } = req.body;
+    if (!title || !date) {
+      return res.status(400).json({ message: 'Title and date are required.' });
+    }
+
+    const event = await Event.create({
+      user: req.user._id,
+      title: title.trim(),
+      eventType: eventType || 'Other',
+      date,
+      startTime: startTime || '',
+      endTime: endTime || '',
+      description: description ? description.trim() : '',
+      color: color || '#6366f1'
+    });
+    res.status(201).json(event);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to add event.' });
+  }
+});
+
+router.put('/events/:id', protect, async (req, res) => {
+  try {
+    const event = await Event.findOne({ _id: req.params.id, user: req.user._id });
+    if (!event) return res.status(404).json({ message: 'Event not found.' });
+
+    if (req.body.title) event.title = req.body.title;
+    if (req.body.eventType) event.eventType = req.body.eventType;
+    if (req.body.date) event.date = req.body.date;
+    if (req.body.startTime !== undefined) event.startTime = req.body.startTime;
+    if (req.body.endTime !== undefined) event.endTime = req.body.endTime;
+    if (req.body.description !== undefined) event.description = req.body.description;
+    if (req.body.color) event.color = req.body.color;
+
+    await event.save();
+    res.json(event);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update event.' });
+  }
+});
+
+router.delete('/events/:id', protect, async (req, res) => {
+  try {
+    await Event.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    res.json({ message: 'Event deleted.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to delete event.' });
   }
 });
 

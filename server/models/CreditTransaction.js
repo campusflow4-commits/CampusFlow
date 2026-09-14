@@ -13,13 +13,16 @@ const creditTransactionSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: [
-      'initial_bonus',
-      'teach_skill',
-      'learn_skill',
-      'video_reward',
-      'quiz_reward',
-      'referral_bonus',
-      'admin_adjustment'
+      'WELCOME_BONUS',
+      'TEACHING_REWARD',
+      'LEARNING_COST',
+      'SWAP_COMPLETION',
+      'DOUBT_REWARD',
+      'QUIZ_COMPLETION',
+      'QUIZ_PERFORMANCE',
+      'VIDEO_COMPLETION',
+      'REFERRAL_REWARD',
+      'ADMIN_ADJUSTMENT'
     ],
     required: true
   },

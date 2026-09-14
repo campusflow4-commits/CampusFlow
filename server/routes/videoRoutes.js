@@ -77,7 +77,7 @@ router.post('/:id/watch', protect, async (req, res) => {
       await CreditTransaction.create({
         user: user._id,
         amount: 50,
-        type: 'video_reward',
+        type: 'VIDEO_COMPLETION',
         description: 'Milestone Reward: Watched 5 skill-building educational videos',
         balanceAfter: user.credits
       });

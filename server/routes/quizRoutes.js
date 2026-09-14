@@ -13,18 +13,24 @@ router.get('/', protect, async (req, res) => {
     const attempts = await QuizAttempt.find({ user: req.user._id });
     const attemptedQuizIds = new Set(attempts.filter(a => a.passed).map(a => a.quiz.toString()));
 
-    const result = quizzes.map(q => ({
-      _id: q._id,
-      title: q.title,
-      category: q.category,
-      description: q.description,
-      timeLimitMinutes: q.timeLimitMinutes,
-      totalQuestions: q.questions.length,
-      creditReward: q.creditReward,
-      passingPercentage: q.passingPercentage,
-      negativeMarksPerWrong: q.negativeMarksPerWrong ?? 0.25,
-      isPassed: attemptedQuizIds.has(q._id.toString())
-    }));
+    const result = quizzes.map(q => {
+      // Find how many attempts this user made on this quiz
+      const userAttemptsCount = attempts.filter(a => a.quiz.toString() === q._id.toString()).length;
+      return {
+        _id: q._id,
+        title: q.title,
+        category: q.category,
+        description: q.description,
+        timeLimitMinutes: q.timeLimitMinutes,
+        totalQuestions: 10, // Normalized to 10
+        creditReward: 20, // Normalized to 20
+        passingPercentage: q.passingPercentage,
+        negativeMarksPerWrong: q.negativeMarksPerWrong ?? 0.25,
+        isPassed: attemptedQuizIds.has(q._id.toString()),
+        attemptsUsed: userAttemptsCount,
+        maxAttempts: 2
+      };
+    });
 
     res.json(result);
   } catch (error) {
@@ -38,7 +44,16 @@ router.get('/:id', protect, async (req, res) => {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
 
-    const safeQuestions = quiz.questions.map((q, idx) => ({
+    const attemptsCount = await QuizAttempt.countDocuments({ user: req.user._id, quiz: quiz._id });
+    if (attemptsCount >= 2) {
+      return res.status(403).json({ message: 'Maximum attempts reached for this quiz.' });
+    }
+
+    // Attempt 0 -> slice(0, 10), Attempt 1 -> slice(10, 20)
+    const startIndex = attemptsCount * 10;
+    const subset = quiz.questions.slice(startIndex, startIndex + 10);
+
+    const safeQuestions = subset.map((q, idx) => ({
       index: idx,
       questionText: q.questionText,
       options: q.options
@@ -52,8 +67,10 @@ router.get('/:id', protect, async (req, res) => {
       timeLimitMinutes: quiz.timeLimitMinutes,
       passingPercentage: quiz.passingPercentage,
       negativeMarksPerWrong: quiz.negativeMarksPerWrong ?? 0.25,
-      creditReward: quiz.creditReward,
-      questions: safeQuestions
+      creditReward: 20,
+      questions: safeQuestions,
+      attemptsUsed: attemptsCount,
+      maxAttempts: 2
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to load quiz questions.' });
@@ -67,7 +84,15 @@ router.post('/:id/submit', protect, async (req, res) => {
     const quiz = await Quiz.findById(req.params.id);
     if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
 
-    const total = quiz.questions.length;
+    const attemptsCount = await QuizAttempt.countDocuments({ user: req.user._id, quiz: quiz._id });
+    if (attemptsCount >= 2) {
+      return res.status(403).json({ message: 'Maximum attempts reached for this quiz.' });
+    }
+
+    const startIndex = attemptsCount * 10;
+    const subset = quiz.questions.slice(startIndex, startIndex + 10);
+
+    const total = subset.length; // Should be 10
     let correctCount = 0;
     let wrongCount = 0;
     let unattemptedCount = 0;
@@ -75,7 +100,7 @@ router.post('/:id/submit', protect, async (req, res) => {
 
     const answerBreakdown = [];
 
-    quiz.questions.forEach((q, idx) => {
+    subset.forEach((q, idx) => {
       const userSelected = answers ? answers[idx] : null;
       const isUnattempted = userSelected === null || userSelected === undefined || userSelected === -1;
       const isCorrect = !isUnattempted && userSelected === q.correctOptionIndex;
@@ -102,18 +127,17 @@ router.post('/:id/submit', protect, async (req, res) => {
     const positiveMarks = correctCount * 1;
     const negativeMarks = parseFloat((wrongCount * penalty).toFixed(2));
     const rawScore = positiveMarks - negativeMarks;
-    // Score clamped to min 0 as requested
     const finalScore = Math.max(0, parseFloat(rawScore.toFixed(2)));
 
     const percentage = Math.max(0, Math.round((finalScore / total) * 100));
     const passed = percentage >= quiz.passingPercentage;
     let creditsEarned = 0;
 
-    // Check if user already passed this quiz before (prevent double credit claiming)
     const existingPassed = await QuizAttempt.findOne({ user: req.user._id, quiz: quiz._id, passed: true });
 
     if (passed && !existingPassed) {
-      creditsEarned = quiz.creditReward;
+      creditsEarned = 20; // Flat +20 for completion
+      
       const user = await User.findById(req.user._id);
       user.credits += creditsEarned;
       await user.save();
@@ -121,8 +145,8 @@ router.post('/:id/submit', protect, async (req, res) => {
       await CreditTransaction.create({
         user: user._id,
         amount: creditsEarned,
-        type: 'quiz_reward',
-        description: `Passed Quiz: "${quiz.title}" with score ${percentage}%`,
+        type: 'QUIZ_COMPLETION',
+        description: `Passed Quiz: "${quiz.title}" with score ${percentage}% (+20 credits)`,
         balanceAfter: user.credits
       });
     }

@@ -16,11 +16,11 @@ import {
 export const PlannerPage = () => {
   const [tab, setTab] = useState('todos'); // 'todos' | 'deadlines' | 'practicals' | 'timetable'
 
-  // Data states
   const [todos, setTodos] = useState([]);
   const [deadlines, setDeadlines] = useState([]);
   const [practicals, setPracticals] = useState([]);
   const [timetable, setTimetable] = useState([]);
+  const [events, setEvents] = useState([]); // NEW: Events state
 
   // Modals
   const [modalOpen, setModalOpen] = useState(false);
@@ -44,18 +44,31 @@ export const PlannerPage = () => {
     color: '#6366f1'
   });
 
+  // Event Form (Calendar)
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    eventType: 'Class',
+    date: new Date().toISOString().split('T')[0],
+    startTime: '',
+    endTime: '',
+    description: '',
+    color: '#6366f1'
+  });
+
   const loadData = async () => {
     try {
-      const [tRes, dRes, pRes, ttRes] = await Promise.all([
+      const [tRes, dRes, pRes, ttRes, evRes] = await Promise.all([
         api.get('/planner/todos'),
         api.get('/planner/deadlines'),
         api.get('/planner/practicals'),
-        api.get('/planner/timetable')
+        api.get('/planner/timetable'),
+        api.get('/planner/events')
       ]);
       setTodos(tRes);
       setDeadlines(dRes);
       setPracticals(pRes);
       setTimetable(ttRes);
+      setEvents(evRes);
     } catch (err) {
       console.error(err);
     }
@@ -169,7 +182,110 @@ export const PlannerPage = () => {
     }
   };
 
+  // Event Handlers
+  const handleAddEvent = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/planner/events', newEvent);
+      setNewEvent({
+        title: '',
+        eventType: 'Class',
+        date: new Date().toISOString().split('T')[0],
+        startTime: '',
+        endTime: '',
+        description: '',
+        color: '#6366f1'
+      });
+      setModalOpen(false);
+      loadData();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteEvent = async (id) => {
+    try {
+      await api.delete(`/planner/events/${id}`);
+      setEvents(prev => prev.filter(e => e._id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // Calendar Helpers
+  const renderMonthGrid = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    const blanks = Array(firstDay).fill(null);
+    const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    const grid = [...blanks, ...days];
+
+    return (
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 1fr)',
+        gap: '8px',
+        marginTop: '16px'
+      }}>
+        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+          <div key={d} style={{ textAlign: 'center', fontWeight: 600, color: 'var(--text-secondary)', paddingBottom: '8px' }}>{d}</div>
+        ))}
+        {grid.map((day, idx) => {
+          if (!day) return <div key={idx} style={{ minHeight: '80px', background: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-sm)' }} />;
+          
+          const dateStr = new Date(currentYear, currentMonth, day).toISOString().split('T')[0];
+          const dayEvents = events.filter(e => {
+            const eDate = new Date(e.date).toISOString().split('T')[0];
+            return eDate === dateStr;
+          });
+
+          const isToday = day === today.getDate();
+
+          return (
+            <div key={idx} style={{
+              minHeight: '90px',
+              padding: '8px',
+              background: isToday ? 'rgba(99, 102, 241, 0.1)' : 'var(--bg-surface)',
+              border: isToday ? '1px solid #6366f1' : '1px solid var(--border-color)',
+              borderRadius: 'var(--radius-sm)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              overflow: 'hidden'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: isToday ? 800 : 600, color: isToday ? '#a5b4fc' : 'var(--text-primary)' }}>{day}</span>
+                {dayEvents.length > 0 && <span style={{ fontSize: '0.65rem', background: '#3b82f6', color: '#fff', padding: '2px 6px', borderRadius: '10px' }}>{dayEvents.length}</span>}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginTop: '4px' }}>
+                {dayEvents.map(e => (
+                  <div key={e._id} style={{
+                    fontSize: '0.7rem',
+                    padding: '2px 4px',
+                    borderRadius: '4px',
+                    background: e.color || '#6366f1',
+                    color: '#fff',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    cursor: 'pointer'
+                  }} title={e.title} onClick={() => handleDeleteEvent(e._id)}>
+                    {e.startTime && `${e.startTime} `}{e.title}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="container" style={{ padding: '36px 20px' }}>
@@ -188,7 +304,7 @@ export const PlannerPage = () => {
         </div>
 
         <button onClick={() => setModalOpen(true)} className="btn btn-primary">
-          <Plus size={18} /> Add {tab === 'todos' ? 'Task' : tab === 'deadlines' ? 'Deadline' : tab === 'practicals' ? 'Practical' : 'Class'}
+          <Plus size={18} /> Add {tab === 'todos' ? 'Task' : tab === 'deadlines' ? 'Deadline' : tab === 'practicals' ? 'Practical' : tab === 'timetable' ? 'Class' : 'Event'}
         </button>
       </div>
 
@@ -240,6 +356,16 @@ export const PlannerPage = () => {
           }}
         >
           <Calendar size={16} /> Weekly Timetable ({timetable.length})
+        </button>
+        <button
+          onClick={() => setTab('events')}
+          className="btn btn-sm"
+          style={{
+            background: tab === 'events' ? 'rgba(59, 130, 246, 0.2)' : 'none',
+            color: tab === 'events' ? '#93c5fd' : 'var(--text-secondary)'
+          }}
+        >
+          <Calendar size={16} /> Schedule / Calendar ({events.length})
         </button>
       </div>
 
@@ -424,11 +550,21 @@ export const PlannerPage = () => {
         </div>
       )}
 
+      {tab === 'events' && (
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ fontSize: '1.25rem' }}>Schedule & Calendar (Month View)</h3>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Click an event to delete it</span>
+          </div>
+          {renderMonthGrid()}
+        </div>
+      )}
+
       {/* Creation Modal dynamically renders based on active tab */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={tab === 'todos' ? 'Add Todo Task' : tab === 'deadlines' ? 'Track New Deadline' : tab === 'practicals' ? 'Add Lab Practical' : 'Add Weekly Class'}
+        title={tab === 'todos' ? 'Add Todo Task' : tab === 'deadlines' ? 'Track New Deadline' : tab === 'practicals' ? 'Add Lab Practical' : tab === 'timetable' ? 'Add Weekly Class' : 'Add Calendar Event'}
       >
         {tab === 'todos' && (
           <form onSubmit={handleAddTodo}>
@@ -593,6 +729,79 @@ export const PlannerPage = () => {
               />
             </div>
             <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '10px' }}>Save to Timetable</button>
+          </form>
+        )}
+
+        {tab === 'events' && (
+          <form onSubmit={handleAddEvent}>
+            <div className="form-group">
+              <label className="form-label">Event Title</label>
+              <input
+                type="text"
+                required
+                className="form-input"
+                placeholder="e.g. Midterm Exam"
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Event Type</label>
+              <select
+                className="form-select"
+                value={newEvent.eventType}
+                onChange={(e) => setNewEvent({ ...newEvent, eventType: e.target.value })}
+              >
+                <option value="Class">Class</option>
+                <option value="Exam">Exam</option>
+                <option value="Study Session">Study Session</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Date</label>
+              <input
+                type="date"
+                required
+                className="form-input"
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="form-group">
+                <label className="form-label">Start Time</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="09:00 AM"
+                  value={newEvent.startTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">End Time</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="10:30 AM"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Color Label</label>
+              <input
+                type="color"
+                className="form-input"
+                style={{ padding: '0', height: '40px', cursor: 'pointer' }}
+                value={newEvent.color}
+                onChange={(e) => setNewEvent({ ...newEvent, color: e.target.value })}
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '10px' }}>Add to Calendar</button>
           </form>
         )}
       </Modal>

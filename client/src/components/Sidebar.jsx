@@ -16,7 +16,9 @@ import {
   BarChart3, 
   Settings, 
   LogOut, 
-  X 
+  X,
+  FileText,
+  BookMarked
 } from 'lucide-react';
 
 export const Sidebar = ({ isOpen, onClose }) => {
@@ -46,7 +48,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
         { label: 'Videos', path: '/videos', icon: PlayCircle },
         { label: 'Quizzes', path: '/quizzes', icon: ClipboardCheck },
         { label: 'Notes', path: '/notes', icon: NotebookPen },
-        { label: 'Planner', path: '/planner', icon: CalendarDays }
+        { label: 'Planner', path: '/planner', icon: CalendarDays },
+        { label: 'Resources / Book Referral', path: '/resources', icon: BookMarked }
+      ]
+    },
+    {
+      groupTitle: 'CAREER',
+      items: [
+        { label: 'CV / Resume', path: '/resume', icon: FileText }
       ]
     },
     {
@@ -71,22 +80,16 @@ export const Sidebar = ({ isOpen, onClose }) => {
       )}
 
       <aside className={`app-sidebar ${isOpen ? 'open' : ''}`}>
-        {/* Brand Header */}
-        <div className="sidebar-header">
-          <Link to="/dashboard" className="brand-logo" onClick={onClose}>
-            <div className="brand-icon">
-              <GraduationCap size={20} />
-            </div>
-            <span>Campus<span className="text-gradient">Flow</span></span>
-          </Link>
-
-          {/* Close button for mobile drawer */}
+        
+        {/* Mobile Close Area */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px' }}>
           <button
             className="sidebar-close-btn"
             onClick={onClose}
             aria-label="Close navigation sidebar"
+            style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
           >
-            <X size={18} />
+            <X size={24} />
           </button>
         </div>
 
@@ -115,31 +118,35 @@ export const Sidebar = ({ isOpen, onClose }) => {
           ))}
         </div>
 
-        {/* User Footer Profile */}
-        {user && (
-          <div className="sidebar-footer">
-            <Link to="/settings" className="sidebar-user" onClick={onClose}>
-              <img
-                src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
-                alt=""
-                className="sidebar-user-avatar"
-              />
-              <div className="sidebar-user-info">
-                <p className="sidebar-user-name">{user.name}</p>
-                <span className="sidebar-user-badge">{user.year || 'Student'}</span>
-              </div>
-            </Link>
+        
+        {/* User Footer Profile & App Footer */}
+        <div className="sidebar-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {user && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <Link to="/settings" className="sidebar-user" onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', color: 'inherit', flex: 1, overflow: 'hidden' }}>
+                <img
+                  src={user.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}`}
+                  alt=""
+                  style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+                />
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.name}</p>
+                  <p style={{ margin: 0, fontSize: '0.65rem', color: 'var(--text-muted)' }}>{user.year || 'Student'}</p>
+                </div>
+              </Link>
+              <button
+                onClick={handleLogout}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                title="Log out"
+                aria-label="Log out"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
+          
+        </div>
 
-            <button
-              onClick={handleLogout}
-              className="sidebar-logout-btn"
-              title="Log out"
-              aria-label="Log out"
-            >
-              <LogOut size={16} />
-            </button>
-          </div>
-        )}
       </aside>
     </>
   );

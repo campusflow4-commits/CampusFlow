@@ -115,31 +115,74 @@ export const Navbar = ({ onToggleSidebar }) => {
     return (
       <header className="app-topbar">
         <div className="app-topbar-inner">
-          {/* Left: Mobile Drawer Button & Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <button
-              onClick={onToggleSidebar}
-              className="sidebar-toggle-btn"
-              aria-label="Toggle navigation menu"
-            >
-              <Menu size={20} />
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                {getPageTitle(location.pathname)}
-              </span>
+          
+          {/* Left: Hamburger & Brand & Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <button
+                onClick={onToggleSidebar}
+                style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex' }}
+                aria-label="Toggle navigation menu"
+              >
+                <Menu size={20} />
+              </button>
+              <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
+                <div className="brand-icon" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '6px' }}>
+                  <GraduationCap size={16} color="#6366f1" />
+                </div>
+                <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem', color: '#ffffff' }}>
+                  Campus<span className="text-gradient">Flow</span>
+                </span>
+              </Link>
             </div>
+            
+            {/* Divider */}
+            <div style={{ width: '1px', height: '20px', background: 'var(--border-color)', margin: '0 8px' }}></div>
+
+            {/* Page Title */}
+            <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', display: 'none', '@media (minWidth: 768px)': { display: 'block' } }} className="nav-page-title">
+              {getPageTitle(location.pathname)}
+            </span>
           </div>
 
-          {/* Right: Credits, Streak, Notification Bell & Avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Compact Credit Pill */}
+          {/* Right: Search, Credits, Streak, Bell, Avatar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Short Search Bar */}
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '6px 12px 6px 30px',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.85rem',
+                  width: '180px',
+                  outline: 'none',
+                  transition: 'width 0.2s ease, border-color 0.2s ease'
+                }}
+                onFocus={(e) => e.target.style.width = '200px'}
+                onBlur={(e) => e.target.style.width = '160px'}
+              />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" height="14" 
+                viewBox="0 0 24 24" fill="none" 
+                stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                style={{ position: 'absolute', left: '10px' }}
+              >
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+
             <Link to="/settings#credits" className="credit-pill compact" title="Your CampusFlow Credits">
-              <Coins size={14} />
-              <span>{user.credits}</span>
+              🪙
+              <span style={{ fontWeight: 600 }}>{user.credits} Credits</span>
             </Link>
 
-            {/* Streak Pill */}
             <div className="streak-pill compact" title={`${user.currentStreak || 1} day learning streak!`}>
               <Flame size={14} />
               <span>{user.currentStreak || 1}d</span>
@@ -167,26 +210,14 @@ export const Navbar = ({ onToggleSidebar }) => {
                   transition: 'all 0.2s ease',
                   padding: 0
                 }}
-                title="Notifications"
-                aria-label="Notifications"
               >
                 <Bell size={17} />
                 {notifications.totalCount > 0 && (
                   <span style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
-                    minWidth: '17px',
-                    height: '17px',
-                    borderRadius: '999px',
-                    background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
-                    color: '#ffffff',
-                    fontSize: '0.65rem',
-                    fontWeight: 800,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 4px',
+                    position: 'absolute', top: '-4px', right: '-4px', minWidth: '17px', height: '17px',
+                    borderRadius: '999px', background: 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)',
+                    color: '#ffffff', fontSize: '0.65rem', fontWeight: 800, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center', padding: '0 4px',
                     boxShadow: '0 0 8px rgba(244, 63, 94, 0.5)'
                   }}>
                     {notifications.totalCount > 9 ? '9+' : notifications.totalCount}
@@ -453,7 +484,7 @@ export const Navbar = ({ onToggleSidebar }) => {
                     onClick={() => setProfileDropdown(false)}
                     style={{ padding: '7px 10px', fontSize: '0.82rem' }}
                   >
-                    <UserPlus size={14} /> Invite Friends (+25)
+                    <UserPlus size={14} /> Invite Friends (+20)
                   </Link>
 
                   <Link

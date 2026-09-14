@@ -9,6 +9,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [deviceWarning, setDeviceWarning] = useState(null);
 
+  const logout = async () => {
+    try {
+      if (token) {
+        await api.post('/auth/logout', {});
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      localStorage.removeItem('skillswap_token');
+      setToken(null);
+      setUser(null);
+    }
+  };
+
   // Load user on mount if token exists
   useEffect(() => {
     const fetchMe = async () => {
@@ -56,19 +70,7 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
-  const logout = async () => {
-    try {
-      if (token) {
-        await api.post('/auth/logout', {});
-      }
-    } catch (e) {
-      // ignore
-    } finally {
-      localStorage.removeItem('skillswap_token');
-      setToken(null);
-      setUser(null);
-    }
-  };
+  
 
   const updateProfile = async (updates) => {
     const res = await api.put('/auth/profile', updates);

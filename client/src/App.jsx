@@ -23,6 +23,7 @@ import { ChatPage } from './pages/ChatPage.jsx';
 import { InviteFriendsPage } from './pages/InviteFriendsPage.jsx';
 import { ReportsPage } from './pages/ReportsPage.jsx';
 import { SettingsPage } from './pages/SettingsPage.jsx';
+import { ResourcesPage } from './pages/ResourcesPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
 
 function AppRoutes() {
@@ -87,6 +88,7 @@ function AppRoutes() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/invite" element={<InviteFriendsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/resources" element={<ResourcesPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
 

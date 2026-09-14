@@ -3,13 +3,13 @@
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Color Palette - Clean, Modern & Lightweight */
-  --bg-main: #0c1019;
-  --bg-card: rgba(18, 25, 41, 0.65);
-  --bg-card-hover: rgba(26, 36, 56, 0.8);
-  --bg-surface: rgba(30, 41, 59, 0.55);
+  --bg-main: #020817;
+  --bg-card: rgba(15, 23, 42, 0.6);
+  --bg-card-hover: rgba(20, 28, 48, 0.9);
+  --bg-surface: rgba(15, 23, 42, 0.6);
   --bg-input: #0f172a;
 
-  --border-color: rgba(255, 255, 255, 0.07);
+  --border-color: rgba(56, 189, 248, 0.15);
   --border-focus: #6366f1;
 
   --primary: #6366f1;
@@ -63,15 +63,21 @@ html[data-font="system"], body[data-font="system"] {
   padding: 0;
 }
 
+
 body {
+  margin: 0;
   font-family: var(--font-body);
-  background-color: var(--bg-main);
+  background-color: #020617; /* Slate 950 */
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%),
+    radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.05), transparent 40%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
-  min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
+
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
@@ -262,7 +268,7 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .form-label {
@@ -323,6 +329,18 @@ button, input, select, textarea {
   }
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* App Shell Layout */
 .app-shell {
   display: flex;
@@ -332,19 +350,36 @@ button, input, select, textarea {
 }
 
 .app-sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  height: 100vh;
-  position: sticky;
+  position: fixed;
   top: 0;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(16px);
+  left: 0;
+  bottom: 0;
+  width: 260px;
+  background: rgba(10, 14, 25, 0.95);
+  backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  z-index: 40;
-  transition: transform var(--transition-normal);
+  z-index: 60;
+  transform: translateX(-100%);
+  transition: transform var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
 }
+.app-sidebar.open {
+  transform: translateX(0);
+}
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 59;
+  animation: fadeIn 0.2s ease;
+}
+.sidebar-close-btn {
+  display: flex; /* always show close inside drawer if needed */
+}
+
 
 .sidebar-header {
   padding: 16px 18px;
@@ -501,7 +536,7 @@ button, input, select, textarea {
 }
 
 .sidebar-toggle-btn {
-  display: none;
+  display: flex;
   background: none;
   border: none;
   color: var(--text-primary);
@@ -509,42 +544,24 @@ button, input, select, textarea {
   padding: 4px;
 }
 
-.app-body {
-  flex: 1;
+.app-
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: #020617; /* Slate 950 */
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%),
+    radial-gradient(circle at 50% 80%, rgba(6, 182, 212, 0.05), transparent 40%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
+
 
 /* Mobile Sidebar Drawer */
-@media (max-width: 900px) {
-  .app-sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    transform: translateX(-100%);
-    box-shadow: none;
-  }
 
-  .app-sidebar.open {
-    transform: translateX(0);
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-  }
-
-  .sidebar-close-btn {
-    display: flex;
-  }
-
-  .sidebar-toggle-btn {
-    display: flex;
-  }
-
-  .sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(4px);
-    z-index: 39;
-  }
-}
 
 /* Segmented Control / Horizontal Tabs */
 .segmented-control {
@@ -701,7 +718,7 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   animation: fadeIn 0.2s ease;
 }
 
@@ -779,5 +796,6 @@ button, input, select, textarea {
   width: 56px;
   height: 56px;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
+.nav-page-title { display: none; } @media (min-width: 768px) { .nav-page-title { display: block; } } 

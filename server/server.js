@@ -3,6 +3,8 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import { seedInitialData } from './utils/seedData.js';
@@ -18,11 +20,16 @@ import chatRoutes from './routes/chatRoutes.js';
 import doubtRoutes from './routes/doubtRoutes.js';
 import noteRoutes from './routes/noteRoutes.js';
 import plannerRoutes from './routes/plannerRoutes.js';
+import resourceRoutes from './routes/resourceRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 
-// Load environment variables
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables relative to this file
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 
 const app = express();
 const server = http.createServer(app);
@@ -116,6 +123,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/doubts', doubtRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/planner', plannerRoutes);
+app.use('/api/resources', resourceRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/reports', reportRoutes);
 

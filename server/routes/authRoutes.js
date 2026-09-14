@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
     if (referralCodeInput) {
       referrerUser = await User.findOne({ referralCode: referralCodeInput.trim().toUpperCase() });
       if (referrerUser) {
-        initialCredits += 25; // Bonus for using referral
+        initialCredits += 20; // Bonus for using referral
       }
     }
 
@@ -82,21 +82,21 @@ router.post('/register', async (req, res) => {
     await CreditTransaction.create({
       user: user._id,
       amount: initialCredits,
-      type: 'initial_bonus',
+      type: 'WELCOME_BONUS',
       description: referrerUser ? 'Welcome bonus + Referral invite bonus' : 'New student starter credits',
       balanceAfter: initialCredits
     });
 
     // Award bonus to referrer if applicable
     if (referrerUser) {
-      referrerUser.credits += 25;
+      referrerUser.credits += 20;
       referrerUser.referralCount += 1;
       await referrerUser.save();
 
       await CreditTransaction.create({
         user: referrerUser._id,
-        amount: 25,
-        type: 'referral_bonus',
+        amount: 20,
+        type: 'REFERRAL_REWARD',
         description: `Referral reward for inviting student ${user.name}`,
         balanceAfter: referrerUser.credits
       });
@@ -242,14 +242,16 @@ router.get('/me', protect, async (req, res) => {
     trialEndDate: user.trialEndDate,
     trialDaysRemaining: daysLeft,
     watchedVideosCount: user.watchedVideosCount,
-    reward5VideosClaimed: user.reward5VideosClaimed
+    reward5VideosClaimed: user.reward5VideosClaimed,
+    experience: user.experience || [],
+    projects: user.projects || []
   });
 });
 
 // PUT /api/auth/profile
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, year, college, bio, avatar, skillsToTeach, skillsToLearn } = req.body;
+    const { name, year, college, bio, avatar, skillsToTeach, skillsToLearn, experience, projects } = req.body;
     const user = req.user;
 
     if (name) user.name = name;
@@ -259,6 +261,8 @@ router.put('/profile', protect, async (req, res) => {
     if (avatar) user.avatar = avatar;
     if (Array.isArray(skillsToTeach)) user.skillsToTeach = skillsToTeach;
     if (Array.isArray(skillsToLearn)) user.skillsToLearn = skillsToLearn;
+    if (Array.isArray(experience)) user.experience = experience;
+    if (Array.isArray(projects)) user.projects = projects;
 
     await user.save();
     res.json({ message: 'Profile updated successfully!', user });

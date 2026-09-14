@@ -129,7 +129,48 @@ const timetableSchema = new mongoose.Schema({
   timestamps: true
 });
 
+const eventSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  title: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  eventType: {
+    type: String,
+    enum: ['Class', 'Exam', 'Study Session', 'Assignment', 'Other'],
+    default: 'Other'
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  startTime: {
+    type: String, // e.g. "09:00 AM"
+    default: ''
+  },
+  endTime: {
+    type: String, // e.g. "10:00 AM"
+    default: ''
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  color: {
+    type: String,
+    default: '#6366f1'
+  }
+}, {
+  timestamps: true
+});
+
 export const Todo = mongoose.model('Todo', todoSchema);
 export const Deadline = mongoose.model('Deadline', deadlineSchema);
 export const Practical = mongoose.model('Practical', practicalSchema);
 export const Timetable = mongoose.model('Timetable', timetableSchema);
+export const Event = mongoose.model('Event', eventSchema);

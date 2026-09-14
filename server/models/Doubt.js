@@ -31,6 +31,10 @@ const answerSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  isAccepted: {
+    type: Boolean,
+    default: false
+  },
   comments: [commentSchema],
   createdAt: {
     type: Date,

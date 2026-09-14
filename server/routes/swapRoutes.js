@@ -163,6 +163,17 @@ router.post('/request', protect, async (req, res) => {
       status: 'pending'
     });
 
+    // Deduct 15 credits for initiating the swap commitment
+    req.user.credits -= 15;
+    await req.user.save();
+    await CreditTransaction.create({
+      user: req.user._id,
+      amount: -15,
+      type: 'LEARNING_COST',
+      description: `Skill Swap Request initiated with ${receiver.name} for ${skillRequested}`,
+      balanceAfter: req.user.credits
+    });
+
     const populated = await SwapRequest.findById(swap._id)
       .populate('sender', 'name email avatar year rating')
       .populate('receiver', 'name email avatar year rating');
@@ -222,7 +233,21 @@ router.put('/:id/reject', protect, async (req, res) => {
     swap.status = 'rejected';
     await swap.save();
 
-    res.json({ message: 'Swap request declined.', swap });
+    // Refund credits to sender
+    const sender = await User.findById(swap.sender);
+    if (sender) {
+      sender.credits += 15;
+      await sender.save();
+      await CreditTransaction.create({
+        user: sender._id,
+        amount: 15,
+        type: 'SWAP_COMPLETION', // or admin_adjustment/refund, but let's stick to standard types or just SWAP_COMPLETION
+        description: `Refund: Swap request declined by ${req.user.name}`,
+        balanceAfter: sender.credits
+      });
+    }
+
+    res.json({ message: 'Swap request declined and credits refunded to sender.', swap });
   } catch (error) {
     res.status(500).json({ message: 'Failed to reject swap request.' });
   }
@@ -247,36 +272,36 @@ router.put('/:id/complete', protect, async (req, res) => {
     swap.completedAt = new Date();
     await swap.save();
 
-    // Reward credits for completed educational exchange (+20 credits to each active student!)
+    // Reward credits for completed educational exchange (+10 credits to each active student!)
     const sender = await User.findById(swap.sender);
     const receiver = await User.findById(swap.receiver);
 
     if (sender) {
-      sender.credits += 20;
+      sender.credits += 10;
       await sender.save();
       await CreditTransaction.create({
         user: sender._id,
-        amount: 20,
-        type: 'teach_skill',
+        amount: 10,
+        type: 'SWAP_COMPLETION',
         description: `Completed Skill Swap: ${swap.skillOffered} <-> ${swap.skillRequested}`,
         balanceAfter: sender.credits
       });
     }
 
     if (receiver) {
-      receiver.credits += 20;
+      receiver.credits += 10;
       await receiver.save();
       await CreditTransaction.create({
         user: receiver._id,
-        amount: 20,
-        type: 'teach_skill',
+        amount: 10,
+        type: 'SWAP_COMPLETION',
         description: `Completed Skill Swap: ${swap.skillRequested} <-> ${swap.skillOffered}`,
         balanceAfter: receiver.credits
       });
     }
 
     res.json({
-      message: '🎉 Skill Swap successfully completed! Both students earned +20 credits.',
+      message: '🎉 Skill Swap successfully completed! Both students earned +10 credits.',
       swap
     });
   } catch (error) {
@@ -328,11 +353,11 @@ router.post('/:id/rate', protect, async (req, res) => {
       
       // Bonus credits for receiving a 5-star review!
       if (ratingNum === 5) {
-        targetUser.credits += 10;
+        targetUser.credits += 5;
         await CreditTransaction.create({
           user: targetUser._id,
-          amount: 10,
-          type: 'teach_skill',
+          amount: 5,
+          type: 'TEACHING_REWARD',
           description: `Bonus for receiving a 5★ rating on skill swap`,
           balanceAfter: targetUser.credits
         });

@@ -62,6 +62,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  experience: [{
+    title: String,
+    company: String,
+    duration: String,
+    description: String
+  }],
+  projects: [{
+    title: String,
+    link: String,
+    description: String
+  }],
   currentStreak: {
     type: Number,
     default: 1

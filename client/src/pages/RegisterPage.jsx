@@ -128,7 +128,7 @@ export const RegisterPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-2" style={{ gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">Academic Year</label>
               <div style={{ position: 'relative' }}>
@@ -167,7 +167,7 @@ export const RegisterPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-2" style={{ gap: '14px' }}>
             <div className="form-group">
               <label className="form-label">Password</label>
               <div style={{ position: 'relative' }}>

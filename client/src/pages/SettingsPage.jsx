@@ -28,6 +28,8 @@ export const SettingsPage = () => {
   const [bio, setBio] = useState(user?.bio || '');
   const [skillsToTeach, setSkillsToTeach] = useState((user?.skillsToTeach || []).join(', '));
   const [skillsToLearn, setSkillsToLearn] = useState((user?.skillsToLearn || []).join(', '));
+  const [experience, setExperience] = useState(user?.experience || []);
+  const [projects, setProjects] = useState(user?.projects || []);
 
   // Password fields
   const [currentPassword, setCurrentPassword] = useState('');
@@ -57,6 +59,8 @@ export const SettingsPage = () => {
       setBio(user.bio || '');
       setSkillsToTeach((user.skillsToTeach || []).join(', '));
       setSkillsToLearn((user.skillsToLearn || []).join(', '));
+      setExperience(user.experience || []);
+      setProjects(user.projects || []);
     }
 
     const loadCredits = async () => {
@@ -98,7 +102,9 @@ export const SettingsPage = () => {
         college,
         bio,
         skillsToTeach: teachArr,
-        skillsToLearn: learnArr
+        skillsToLearn: learnArr,
+        experience,
+        projects
       });
 
       setProfileMsg({ type: 'success', text: 'Student profile updated successfully!' });
@@ -135,6 +141,69 @@ export const SettingsPage = () => {
 
   const deviceId = getDeviceId();
   const trialDays = user?.trialDaysRemaining ?? 7;
+
+  // Handlers for CV Builder
+  const handleAddExperience = () => setExperience([...experience, { title: '', company: '', duration: '', description: '' }]);
+  const handleRemoveExperience = (index) => setExperience(experience.filter((_, i) => i !== index));
+  const handleChangeExperience = (index, field, value) => {
+    const newExp = [...experience];
+    newExp[index][field] = value;
+    setExperience(newExp);
+  };
+
+  const handleAddProject = () => setProjects([...projects, { title: '', link: '', description: '' }]);
+  const handleRemoveProject = (index) => setProjects(projects.filter((_, i) => i !== index));
+  const handleChangeProject = (index, field, value) => {
+    const newProj = [...projects];
+    newProj[index][field] = value;
+    setProjects(newProj);
+  };
+
+  const handlePrintCV = () => {
+    const content = document.getElementById('printable-cv');
+    if (!content) return;
+    
+    // Create a temporary iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <html>
+        <head>
+          <title>${name} - CV</title>
+          <style>
+            body { font-family: 'Inter', system-ui, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6; }
+            h1 { font-size: 2.5rem; margin-bottom: 5px; color: #111827; font-weight: 800; }
+            h2 { font-size: 1.4rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px; color: #374151; font-weight: 700; }
+            h3 { font-size: 1.1rem; margin: 0; color: #111827; font-weight: 600; }
+            p { margin: 5px 0; font-size: 0.95rem; color: #4b5563; }
+            .header-info { color: #6b7280; font-size: 1rem; margin-bottom: 25px; }
+            .item-meta { display: flex; justify-content: space-between; margin-bottom: 8px; }
+            .meta-light { color: #6b7280; font-size: 0.9rem; }
+            .badge { display: inline-block; background: #f3f4f6; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; margin-right: 8px; margin-bottom: 8px; color: #374151; border: 1px solid #e5e7eb; }
+            .desc { font-size: 0.95rem; margin-bottom: 15px; }
+            a { color: #2563eb; text-decoration: none; }
+          </style>
+        </head>
+        <body>
+          ${content.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+    
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      iframe.contentWindow.print();
+      document.body.removeChild(iframe);
+    }, 250);
+  };
 
   return (
     <div className="container" style={{ padding: '32px 20px', maxWidth: '840px' }}>
@@ -295,7 +364,7 @@ export const SettingsPage = () => {
         )}
 
         <form onSubmit={handleUpdateProfile}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid-2" style={{ gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <input
@@ -375,6 +444,142 @@ export const SettingsPage = () => {
         </form>
       </div>
 
+      {/* CV / Resume Builder Feature */}
+      <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <User size={18} color="#f59e0b" />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>CV / Resume Builder</h3>
+          </div>
+          <button type="button" onClick={handlePrintCV} className="btn btn-emerald btn-sm">
+            Print to PDF
+          </button>
+        </div>
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>
+          Add your work experience and projects below. These will be combined with your Student Identity data above when you print your CV. Make sure to click "Save Profile Changes" above after editing these sections.
+        </p>
+
+        {/* Experience Editor */}
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Work Experience</h4>
+            <button type="button" onClick={handleAddExperience} className="btn btn-secondary btn-sm" style={{ padding: '4px 10px', fontSize: '0.8rem' }}>
+              + Add Experience
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {experience.map((exp, idx) => (
+              <div key={idx} style={{ padding: '16px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', position: 'relative' }}>
+                <button type="button" onClick={() => handleRemoveExperience(idx)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>✕ Remove</button>
+                <div className="grid-2" style={{ gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Job Title</label>
+                    <input type="text" className="form-input" style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={exp.title} onChange={(e) => handleChangeExperience(idx, 'title', e.target.value)} placeholder="e.g. Frontend Developer Intern" />
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Company</label>
+                    <input type="text" className="form-input" style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={exp.company} onChange={(e) => handleChangeExperience(idx, 'company', e.target.value)} placeholder="e.g. Google" />
+                  </div>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <label className="form-label" style={{ fontSize: '0.75rem' }}>Duration</label>
+                  <input type="text" className="form-input" style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={exp.duration} onChange={(e) => handleChangeExperience(idx, 'duration', e.target.value)} placeholder="e.g. June 2025 - Present" />
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.75rem' }}>Description</label>
+                  <textarea className="form-textarea" rows={2} style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={exp.description} onChange={(e) => handleChangeExperience(idx, 'description', e.target.value)} placeholder="Describe your responsibilities and achievements..." />
+                </div>
+              </div>
+            ))}
+            {experience.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No experience added yet.</p>}
+          </div>
+        </div>
+
+        {/* Projects Editor */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)' }}>Projects</h4>
+            <button type="button" onClick={handleAddProject} className="btn btn-secondary btn-sm" style={{ padding: '4px 10px', fontSize: '0.8rem' }}>
+              + Add Project
+            </button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {projects.map((proj, idx) => (
+              <div key={idx} style={{ padding: '16px', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', position: 'relative' }}>
+                <button type="button" onClick={() => handleRemoveProject(idx)} style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>✕ Remove</button>
+                <div className="grid-2" style={{ gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Project Title</label>
+                    <input type="text" className="form-input" style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={proj.title} onChange={(e) => handleChangeProject(idx, 'title', e.target.value)} placeholder="e.g. CampusFlow" />
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '0.75rem' }}>Link (Optional)</label>
+                    <input type="text" className="form-input" style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={proj.link} onChange={(e) => handleChangeProject(idx, 'link', e.target.value)} placeholder="e.g. github.com/username/project" />
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label" style={{ fontSize: '0.75rem' }}>Description</label>
+                  <textarea className="form-textarea" rows={2} style={{ padding: '6px 10px', fontSize: '0.85rem' }} value={proj.description} onChange={(e) => handleChangeProject(idx, 'description', e.target.value)} placeholder="Describe what the project does and technologies used..." />
+                </div>
+              </div>
+            ))}
+            {projects.length === 0 && <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No projects added yet.</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden CV DOM for Printing */}
+      <div id="printable-cv" style={{ display: 'none' }}>
+        <h1>{name || 'Student Name'}</h1>
+        <div class="header-info">
+          {user?.email} • {year} • {college || 'Engineering Institute'}
+        </div>
+        
+        {bio && (
+          <>
+            <h2>Profile Summary</h2>
+            <p>{bio}</p>
+          </>
+        )}
+
+        <h2>Skills</h2>
+        <div>
+          {skillsToTeach.split(',').filter(Boolean).map((s, i) => <span key={i} class="badge">{s.trim()}</span>)}
+          {skillsToLearn.split(',').filter(Boolean).map((s, i) => <span key={i} class="badge">{s.trim()} (Learning)</span>)}
+        </div>
+
+        {experience.length > 0 && (
+          <>
+            <h2>Experience</h2>
+            {experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: '20px' }}>
+                <div class="item-meta">
+                  <h3>{exp.title}</h3>
+                  <span class="meta-light">{exp.duration}</span>
+                </div>
+                <p style={{ fontWeight: '500', marginBottom: '8px', color: '#4b5563' }}>{exp.company}</p>
+                <p class="desc">{exp.description}</p>
+              </div>
+            ))}
+          </>
+        )}
+
+        {projects.length > 0 && (
+          <>
+            <h2>Projects</h2>
+            {projects.map((proj, i) => (
+              <div key={i} style={{ marginBottom: '20px' }}>
+                <div class="item-meta">
+                  <h3>{proj.title}</h3>
+                  {proj.link && <span class="meta-light"><a href={proj.link.startsWith('http') ? proj.link : `https://\${proj.link}`} target="_blank" rel="noreferrer">{proj.link}</a></span>}
+                </div>
+                <p class="desc">{proj.description}</p>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
+
       {/* Section 3: Password Security with Eye Toggles */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
@@ -427,7 +632,7 @@ export const SettingsPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div className="grid-2" style={{ gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">New Password</label>
               <div style={{ position: 'relative' }}>

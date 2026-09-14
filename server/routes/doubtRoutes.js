@@ -151,4 +151,51 @@ router.post('/:id/answers/:answerId/comment', protect, async (req, res) => {
   }
 });
 
+// POST /api/doubts/:id/answers/:answerId/accept - Accept an answer
+router.post('/:id/answers/:answerId/accept', protect, async (req, res) => {
+  try {
+    const doubt = await Doubt.findById(req.params.id);
+    if (!doubt) return res.status(404).json({ message: 'Doubt not found.' });
+
+    if (doubt.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Only the author can accept an answer.' });
+    }
+
+    const answer = doubt.answers.id(req.params.answerId);
+    if (!answer) return res.status(404).json({ message: 'Answer not found.' });
+
+    if (answer.isAccepted) {
+      return res.status(400).json({ message: 'This answer is already accepted.' });
+    }
+
+    // Mark as accepted and resolve doubt
+    answer.isAccepted = true;
+    doubt.resolved = true;
+    await doubt.save();
+
+    // Reward the answer author with +3 credits
+    const answerAuthor = await User.findById(answer.author);
+    if (answerAuthor && answerAuthor._id.toString() !== req.user._id.toString()) {
+      answerAuthor.credits += 3;
+      await answerAuthor.save();
+      await CreditTransaction.create({
+        user: answerAuthor._id,
+        amount: 3,
+        type: 'DOUBT_REWARD',
+        description: `Your answer was accepted in: ${doubt.title}`,
+        balanceAfter: answerAuthor.credits
+      });
+    }
+
+    const updated = await Doubt.findById(doubt._id)
+      .populate('author', 'name avatar year')
+      .populate('answers.author', 'name avatar year')
+      .populate('answers.comments.author', 'name avatar');
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to accept answer.' });
+  }
+});
+
 export default router;
