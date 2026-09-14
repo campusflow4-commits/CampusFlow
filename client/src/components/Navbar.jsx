@@ -128,8 +128,8 @@ export const Navbar = ({ onToggleSidebar }) => {
               </button>
               <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}>
                 <div className="brand-icon" style={{ width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '6px' }}>
-                  <GraduationCap size={16} color="#6366f1" />
-                </div>
+  <img src="/assets/campusflow_logo.jpeg" alt="CampusFlow Logo" style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "inherit" }} />
+</div>
                 <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem', color: '#ffffff' }}>
                   Campus<span className="text-gradient">Flow</span>
                 </span>
@@ -527,8 +527,8 @@ export const Navbar = ({ onToggleSidebar }) => {
       <div className="container navbar-inner">
         <Link to="/" className="brand-logo">
           <div className="brand-icon">
-            <GraduationCap size={20} />
-          </div>
+  <img src="/assets/campusflow_logo.jpeg" alt="CampusFlow Logo" style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "inherit" }} />
+</div>
           <span>Campus<span className="text-gradient">Flow</span></span>
         </Link>
 

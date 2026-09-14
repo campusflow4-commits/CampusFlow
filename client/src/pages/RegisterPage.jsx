@@ -67,8 +67,8 @@ export const RegisterPage = () => {
       <div className="glass-card" style={{ width: '100%', maxWidth: '500px', padding: '36px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div className="brand-icon" style={{ margin: '0 auto 12px auto', width: '44px', height: '44px' }}>
-            <GraduationCap size={24} />
-          </div>
+  <img src="/assets/campusflow_logo.jpeg" alt="CampusFlow Logo" style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "inherit" }} />
+</div>
           <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Join CampusFlow</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '4px' }}>
             Get 50 Starter Credits + 7-Day Free Trial

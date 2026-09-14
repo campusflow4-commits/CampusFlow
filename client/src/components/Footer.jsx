@@ -21,8 +21,8 @@ export const Footer = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <div className="brand-icon" style={{ width: '30px', height: '30px' }}>
-            <GraduationCap size={16} />
-          </div>
+  <img src="/assets/campusflow_logo.jpeg" alt="CampusFlow Logo" style={{ width: "100%", height: "100%", objectFit: "contain", borderRadius: "inherit" }} />
+</div>
           <span style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>
             Campus<span className="text-gradient">Flow</span>
           </span>

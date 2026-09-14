@@ -8,7 +8,6 @@ import {
   Clock, History, ArrowRight, Video, FileText, LayoutDashboard, Target
 } from 'lucide-react';
 import heroBg from '../assets/hero_student_night.jpg';
-import waveBg from '../assets/wave_bg.jpg';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
@@ -181,25 +180,6 @@ export const DashboardPage = () => {
       </div>
 
       
-      {/* --- BACKGROUND WRAPPER FOR GRAPH AND CARDS --- */}
-      <div style={{ position: 'relative', width: '100%' }}>
-        {/* Decorative Wave Background (Pointer Events None so it sits purely behind) */}
-        <div style={{
-          position: 'absolute',
-          top: '-40px', left: '-40px', right: '-40px', bottom: '-40px',
-          backgroundImage: `url(${waveBg})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-          opacity: 0.5,
-          zIndex: 0,
-          pointerEvents: 'none',
-          maskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)'
-        }} />
-        
-        {/* Content Container (Needs zIndex to sit above background) */}
-        <div style={{ position: 'relative', zIndex: 1 }}>
-
       {/* 2. Main Analytics - 70/30 Split */}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
@@ -361,121 +341,6 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* 4. Upcoming Schedule + Recent Activity + Quote */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-
-      {/* Motivational Quote Card */}
-      <div style={{
-        position: 'relative',
-        padding: '24px',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1e1b4b, #312e81)',
-        boxShadow: 'var(--shadow-md)',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        border: '1px solid rgba(99,102,241,0.2)'
-      }}>
-        {/* Subtle mountain/night silhouette glow */}
-        <div style={{
-          position: 'absolute',
-          bottom: '-20%', right: '-10%',
-          width: '150%', height: '100%',
-          background: 'radial-gradient(ellipse at bottom right, rgba(139,92,246,0.2), transparent 70%)',
-          zIndex: 0
-        }} />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <p style={{ fontSize: '1.4rem', fontWeight: 700, color: '#e0e7ff', lineHeight: 1.4, margin: '0 0 16px 0', fontFamily: 'var(--font-heading)' }}>
-            "Discipline today<br/>creates the success<br/>of tomorrow."
-          </p>
-          <div style={{ width: '40px', height: '4px', background: '#818cf8', borderRadius: '4px' }} />
-        </div>
-      </div>
-
-        
-        {/* Upcoming Schedule */}
-        <div className="glass-card" style={{ padding: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <CalendarDays size={18} color="#6366f1" />
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Upcoming Schedule</h3>
-            </div>
-            <Link to="/planner" style={{ fontSize: '0.8rem', color: '#6366f1', textDecoration: 'none', fontWeight: 600 }}>View All →</Link>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {plannerSummary?.todayClasses && plannerSummary.todayClasses.length > 0 ? (
-              plannerSummary.todayClasses.slice(0, 3).map((c, idx) => (
-                <div key={idx} style={{ 
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                  padding: '12px 14px', background: 'rgba(255,255,255,0.02)', 
-                  border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' 
-                }}>
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 2px 0' }}>{c.subject}</p>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: 0 }}>{c.type || 'Class'}</p>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                    {c.startTime} - {c.endTime}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                <p>No upcoming events.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-      {/* Recent Activity */}
-      <div className="glass-card" style={{ padding: '16px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <History size={18} color="#f43f5e" />
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Recent Activity</h3>
-          </div>
-          <button onClick={() => toggleCollapse('activity')} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-            {collapsed.activity ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-          </button>
-        </div>
-
-        {!collapsed.activity && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {recentActivity.length > 0 ? (
-              recentActivity.map((tx, idx) => (
-                <div key={idx} style={{ 
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                  padding: '12px 14px', background: 'rgba(255,255,255,0.02)', 
-                  border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px' 
-                }}>
-                  <div>
-                    <p style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 2px 0' }}>{tx.description}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span className="badge badge-primary" style={{ fontSize: '0.6rem', padding: '2px 6px' }}>{tx.type}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                        {new Date(tx.createdAt).toLocaleDateString()} {new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: tx.amount > 0 ? '#10b981' : '#f43f5e' }}>
-                    {tx.amount > 0 ? '+' : ''}{tx.amount}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                <p>No recent activity. Start learning or taking quizzes to earn credits!</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      </div>
-
-      
-        </div>
-      </div>
       
       {/* Footer */}
 
