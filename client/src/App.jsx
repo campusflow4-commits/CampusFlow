@@ -32,15 +32,16 @@ function AppRoutes() {
 
   // Apply persisted font preference across the entire application
   useEffect(() => {
-    const savedFont = localStorage.getItem('campusflow_font') || 'default';
-    if (savedFont && savedFont !== 'default') {
+    // Read from user profile if authenticated, otherwise use default
+    const savedFont = user?.fontPreference || 'default';
+    if (savedFont && savedFont !== 'default' && savedFont !== 'system') {
       document.documentElement.setAttribute('data-font', savedFont);
       document.body.setAttribute('data-font', savedFont);
     } else {
       document.documentElement.removeAttribute('data-font');
       document.body.removeAttribute('data-font');
     }
-  }, []);
+  }, [user?.fontPreference]);
 
   // Public visitor layout (Landing, Login, Register)
   if (!user) {

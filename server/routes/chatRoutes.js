@@ -117,4 +117,25 @@ router.post('/send', protect, async (req, res) => {
   }
 });
 
+// PUT /api/chat/read/:targetUserId - Mark messages as read explicitly
+router.put('/read/:targetUserId', protect, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+
+    const conversation = await Conversation.findOne({
+      participants: { $all: [req.user._id, targetUserId] }
+    });
+
+    if (conversation) {
+      await Message.updateMany(
+        { conversation: conversation._id, receiver: req.user._id, read: false },
+        { read: true }
+      );
+    }
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to mark messages as read.' });
+  }
+});
+
 export default router;

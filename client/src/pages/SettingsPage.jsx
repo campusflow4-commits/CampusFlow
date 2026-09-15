@@ -49,8 +49,7 @@ export const SettingsPage = () => {
   const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('campusflow_font') || 'system';
-    setSelectedFont(saved);
+    setSelectedFont(user?.fontPreference || 'system');
 
     if (user) {
       setName(user.name);
@@ -75,15 +74,13 @@ export const SettingsPage = () => {
     loadCredits();
   }, [user]);
 
-  const handleFontChange = (fontKey) => {
+  const handleFontChange = async (fontKey) => {
     setSelectedFont(fontKey);
-    localStorage.setItem('campusflow_font', fontKey);
-    if (fontKey === 'system') {
-      document.documentElement.removeAttribute('data-font');
-      document.body.removeAttribute('data-font');
-    } else {
-      document.documentElement.setAttribute('data-font', fontKey);
-      document.body.setAttribute('data-font', fontKey);
+    try {
+      await updateProfile({ fontPreference: fontKey });
+      refreshUser();
+    } catch (err) {
+      setProfileMsg({ type: 'error', text: 'Failed to save font preference.' });
     }
   };
 

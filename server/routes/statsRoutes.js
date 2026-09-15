@@ -54,28 +54,117 @@ router.get('/progress', protect, async (req, res) => {
     // Videos watched
     const totalVideosWatched = await VideoProgress.countDocuments({ user: userId });
 
-    // 6-Month activity simulation/aggregation for Recharts Line & Bar charts
-    const months = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-    const currentMonthIdx = 5; // Sep
+    // 6-Month activity aggregation for Recharts Line & Bar charts
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
 
-    const monthlySkillGrowth = months.map((month, idx) => {
-      // Dynamic baseline that connects to real student metrics
-      const factor = (idx + 1) / 6;
-      return {
-        month,
-        skillsLearned: Math.max(1, Math.round(completedLearnerSwaps * factor) + (idx === currentMonthIdx ? 1 : idx)),
-        skillsTaught: Math.max(0, Math.round(completedTeacherSwaps * factor) + (idx >= 3 ? 1 : 0)),
-        creditsEarned: Math.round(req.user.credits * factor) + (idx * 15),
-        quizzesTaken: Math.max(0, Math.round(totalQuizAttempts * factor))
+    const matchCriteria = {
+      createdAt: { $gte: sixMonthsAgo }
+    };
+
+    const monthlyStatsMap = {};
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthStr = d.toLocaleString('default', { month: 'short' });
+      months.push(monthStr);
+      monthlyStatsMap[monthStr] = {
+        month: monthStr,
+        skillsLearned: 0,
+        skillsTaught: 0,
+        creditsEarned: 0,
+        quizzesTaken: 0
       };
+    }
+
+    const learnerSwapsHistory = await SwapRequest.aggregate([
+      { $match: { receiver: userId, status: 'completed', updatedAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { $month: "$updatedAt" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const teacherSwapsHistory = await SwapRequest.aggregate([
+      { $match: { sender: userId, status: 'completed', updatedAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { $month: "$updatedAt" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const quizHistory = await QuizAttempt.aggregate([
+      { $match: { user: userId, createdAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { $month: "$createdAt" },
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const creditsHistory = await CreditTransaction.aggregate([
+      { $match: { user: userId, amount: { $gt: 0 }, createdAt: { $gte: sixMonthsAgo } } },
+      { $group: {
+          _id: { $month: "$createdAt" },
+          total: { $sum: "$amount" }
+        }
+      }
+    ]);
+
+    const getMonthStr = (monthNum) => {
+      const d = new Date();
+      d.setMonth(monthNum - 1);
+      return d.toLocaleString('default', { month: 'short' });
+    };
+
+    learnerSwapsHistory.forEach(item => {
+      const m = getMonthStr(item._id);
+      if (monthlyStatsMap[m]) monthlyStatsMap[m].skillsLearned = item.count;
     });
 
-    const categoryDistribution = [
-      { name: 'Web Development', value: 40, color: '#6366f1' },
-      { name: 'Python & AI', value: 25, color: '#8b5cf6' },
-      { name: 'Data Structures', value: 20, color: '#10b981' },
-      { name: 'UI/UX Design', value: 15, color: '#f59e0b' }
-    ];
+    teacherSwapsHistory.forEach(item => {
+      const m = getMonthStr(item._id);
+      if (monthlyStatsMap[m]) monthlyStatsMap[m].skillsTaught = item.count;
+    });
+
+    quizHistory.forEach(item => {
+      const m = getMonthStr(item._id);
+      if (monthlyStatsMap[m]) monthlyStatsMap[m].quizzesTaken = item.count;
+    });
+
+    creditsHistory.forEach(item => {
+      const m = getMonthStr(item._id);
+      if (monthlyStatsMap[m]) monthlyStatsMap[m].creditsEarned = item.total;
+    });
+
+    const monthlySkillGrowth = months.map(m => monthlyStatsMap[m]);
+
+    const categoryDistributionAgg = await QuizAttempt.aggregate([
+      { $match: { user: userId } },
+      { $lookup: { from: 'quizzes', localField: 'quiz', foreignField: '_id', as: 'quizDoc' } },
+      { $unwind: '$quizDoc' },
+      { $group: {
+          _id: '$quizDoc.category',
+          value: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const defaultColors = ['#6366f1', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6'];
+    const categoryDistribution = categoryDistributionAgg.map((item, index) => ({
+      name: item._id,
+      value: item.value,
+      color: defaultColors[index % defaultColors.length]
+    }));
+
+    if (categoryDistribution.length === 0) {
+      categoryDistribution.push({ name: 'No Data Yet', value: 1, color: '#64748b' });
+    }
 
     res.json({
       summary: {
@@ -92,6 +181,7 @@ router.get('/progress', protect, async (req, res) => {
       categoryDistribution
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Failed to compile student analytics.' });
   }
 });

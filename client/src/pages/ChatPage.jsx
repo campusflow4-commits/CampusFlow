@@ -129,6 +129,11 @@ export const ChatPage = () => {
           createdAt: msg.createdAt
         }]);
         scrollToBottom();
+
+        // Mark as read in backend since we are actively viewing it
+        if (msg.senderId === activePartner?._id) {
+          api.put(`/chat/read/${activePartner._id}`).catch(err => console.error(err));
+        }
       }
     };
 
