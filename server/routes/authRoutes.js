@@ -271,14 +271,16 @@ router.get('/me', protect, async (req, res) => {
     watchedVideosCount: user.watchedVideosCount,
     reward5VideosClaimed: user.reward5VideosClaimed,
     experience: user.experience || [],
-    projects: user.projects || []
+    projects: user.projects || [],
+    fontPreference: user.fontPreference,
+    dashboardPreferences: user.dashboardPreferences
   });
 });
 
 // PUT /api/auth/profile
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, year, college, bio, avatar, skillsToTeach, skillsToLearn, experience, projects } = req.body;
+    const { name, year, college, bio, avatar, skillsToTeach, skillsToLearn, experience, projects, fontPreference, dashboardPreferences } = req.body;
     const user = req.user;
 
     if (name) user.name = name;
@@ -290,6 +292,8 @@ router.put('/profile', protect, async (req, res) => {
     if (Array.isArray(skillsToLearn)) user.skillsToLearn = skillsToLearn;
     if (Array.isArray(experience)) user.experience = experience;
     if (Array.isArray(projects)) user.projects = projects;
+    if (fontPreference) user.fontPreference = fontPreference;
+    if (dashboardPreferences) user.dashboardPreferences = dashboardPreferences;
 
     await user.save();
     res.json({ message: 'Profile updated successfully!', user });

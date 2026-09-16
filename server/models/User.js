@@ -117,6 +117,14 @@ const userSchema = new mongoose.Schema({
   isDemoUser: {
     type: Boolean,
     default: false
+  },
+  fontPreference: {
+    type: String,
+    default: 'system'
+  },
+  dashboardPreferences: {
+    type: Object,
+    default: { collapsed: false }
   }
 }, {
   timestamps: true

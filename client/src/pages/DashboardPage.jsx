@@ -22,16 +22,17 @@ export const DashboardPage = () => {
   const [_loading, setLoading] = useState(true);
 
   const [collapsed, setCollapsed] = useState(() => {
-    const saved = localStorage.getItem('campusflow_dash_collapsed');
-    return saved ? JSON.parse(saved) : { graph: false, widgets: false, activity: false };
+    return user?.dashboardPreferences || { graph: false, widgets: false, activity: false };
   });
 
-  const toggleCollapse = (section) => {
-    setCollapsed(prev => {
-      const newState = { ...prev, [section]: !prev[section] };
-      localStorage.setItem('campusflow_dash_collapsed', JSON.stringify(newState));
-      return newState;
-    });
+  const toggleCollapse = async (section) => {
+    const newState = { ...collapsed, [section]: !collapsed[section] };
+    setCollapsed(newState);
+    try {
+      await api.put('/auth/profile', { dashboardPreferences: newState });
+    } catch (err) {
+      console.error('Failed to save dashboard preferences');
+    }
   };
 
   useEffect(() => {
@@ -59,14 +60,7 @@ export const DashboardPage = () => {
     loadDashboardData();
   }, []);
 
-  const monthlyData = progressStats?.monthlySkillGrowth || [
-    { month: 'Apr', skillsLearned: 1, skillsTaught: 0, creditsEarned: 30 },
-    { month: 'May', skillsLearned: 2, skillsTaught: 1, creditsEarned: 50 },
-    { month: 'Jun', skillsLearned: 3, skillsTaught: 2, creditsEarned: 70 },
-    { month: 'Jul', skillsLearned: 4, skillsTaught: 2, creditsEarned: 85 },
-    { month: 'Aug', skillsLearned: 5, skillsTaught: 3, creditsEarned: 110 },
-    { month: 'Sep', skillsLearned: 6, skillsTaught: 4, creditsEarned: 140 }
-  ];
+  const monthlyData = progressStats?.monthlySkillGrowth || [];
 
   return (
     <div className="container" style={{ padding: '16px 20px', maxWidth: '1440px', margin: '0 auto' }}>
