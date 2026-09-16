@@ -12,8 +12,19 @@ import {
   RotateCcw,
   Eye,
   EyeOff,
-  Check
+  Check,
+  Camera,
+  X,
+  Upload
 } from 'lucide-react';
+
+const PREDEFINED_AVATARS = [
+  'https://api.dicebear.com/7.x/bottts/svg?seed=student1',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=student2',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=student3',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=student4',
+  'https://api.dicebear.com/7.x/bottts/svg?seed=student5'
+];
 
 export const SettingsPage = () => {
   const { user, updateProfile, refreshUser } = useAuth();
@@ -47,6 +58,14 @@ export const SettingsPage = () => {
   const [passwordMsg, setPasswordMsg] = useState(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+
+  // Avatar Modal State
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [avatarSelection, setAvatarSelection] = useState(user?.avatar || '');
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('campusflow_font') || 'system';
@@ -157,6 +176,46 @@ export const SettingsPage = () => {
     const newProj = [...projects];
     newProj[index][field] = value;
     setProjects(newProj);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setAvatarError('Please select a valid JPG, PNG, or WEBP image.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setAvatarError('Image must be less than 2MB.');
+      return;
+    }
+
+    setAvatarError(null);
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    setAvatarSelection('custom');
+  };
+
+  const handleSaveAvatar = async () => {
+    setAvatarError(null);
+    setAvatarUploading(true);
+    try {
+      if (avatarSelection === 'custom' && avatarFile) {
+        const formData = new FormData();
+        formData.append('avatar', avatarFile);
+        await api.uploadAvatar(formData);
+        await refreshUser();
+      } else if (avatarSelection !== 'custom' && avatarSelection) {
+        await updateProfile({ avatar: avatarSelection });
+        await refreshUser();
+      }
+      setShowAvatarModal(false);
+    } catch (err) {
+      setAvatarError(err.message || 'Failed to update avatar.');
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const handlePrintCV = () => {
@@ -345,9 +404,29 @@ export const SettingsPage = () => {
 
       {/* Section 2: Student Identity & Profile */}
       <div className="glass-card" style={{ padding: '24px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
-          <User size={18} color="#6366f1" />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Student Identity & Bio</h3>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <User size={18} color="#6366f1" />
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>Student Identity & Bio</h3>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <img src={user?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.name}`} alt="Current Avatar" style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }} />
+            <button 
+              type="button" 
+              onClick={() => {
+                setAvatarSelection(user?.avatar || '');
+                setAvatarFile(null);
+                setAvatarPreview(null);
+                setAvatarError(null);
+                setShowAvatarModal(true);
+              }} 
+              className="btn btn-secondary btn-sm" 
+              style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Camera size={14} /> Change Photo
+            </button>
+          </div>
         </div>
 
         {profileMsg && (
@@ -778,6 +857,62 @@ export const SettingsPage = () => {
           <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No credit transactions logged.</p>
         )}
       </div>
+
+      {/* Avatar Modal */}
+      {showAvatarModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div className="glass-card" style={{ padding: '24px', width: '90%', maxWidth: '450px', position: 'relative' }}>
+            <button onClick={() => setShowAvatarModal(false)} style={{ position: 'absolute', right: '16px', top: '16px', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <X size={20} />
+            </button>
+            <h3 style={{ marginBottom: '16px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Camera size={20} color="#6366f1" /> Change Profile Photo
+            </h3>
+            
+            {avatarError && <div style={{ color: '#fb7185', background: 'rgba(244,63,94,0.1)', padding: '10px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.85rem' }}>{avatarError}</div>}
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Predefined Avatars</label>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                {PREDEFINED_AVATARS.map((url, i) => (
+                  <img 
+                    key={i} src={url} alt={`Avatar ${i+1}`}
+                    onClick={() => { setAvatarSelection(url); setAvatarFile(null); setAvatarPreview(null); }}
+                    style={{ width: '50px', height: '50px', borderRadius: '50%', cursor: 'pointer', border: avatarSelection === url ? '3px solid #6366f1' : '3px solid transparent', background: 'rgba(255,255,255,0.05)' }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>Custom Photo (JPG, PNG, WEBP)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Upload size={14} /> Upload File
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handleFileChange} />
+                </label>
+                {avatarPreview && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img src={avatarPreview} alt="Preview" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: avatarSelection === 'custom' ? '2px solid #6366f1' : 'none' }} />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Preview</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button onClick={() => setShowAvatarModal(false)} className="btn btn-secondary" disabled={avatarUploading}>Cancel</button>
+              <button onClick={handleSaveAvatar} className="btn btn-primary" disabled={avatarUploading || (!avatarFile && !PREDEFINED_AVATARS.includes(avatarSelection))}>
+                {avatarUploading ? 'Saving...' : 'Save Avatar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

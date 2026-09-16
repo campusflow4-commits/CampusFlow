@@ -25,9 +25,39 @@ async function testConnection() {
   }
 
   try {
-    const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000 // 5 second timeout for fast feedback
-    });
+    let conn;
+    try {
+      conn = await mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 5000 // 5 second timeout for fast feedback
+      });
+    } catch (srvErr) {
+      if (uri.startsWith('mongodb+srv://') && (srvErr.message.includes('querySrv') || srvErr.message.includes('ECONNREFUSED'))) {
+        console.log('🔄 Local DNS refused SRV resolution. Testing via resilient resolver...');
+        const match = uri.match(/^mongodb\+srv:\/\/([^@]+)@([^/?]+)(\/[^?]*)?(\?.*)?$/);
+        if (match) {
+          const [, userinfo, srvHost, dbPath = '', query = ''] = match;
+          const srvRes = await fetch(`https://dns.google/resolve?name=_mongodb._tcp.${srvHost}&type=SRV`).then(r => r.json());
+          const srvRecords = (srvRes.Answer || []).filter(a => a.type === 33).map(a => {
+            const parts = a.data.split(' ');
+            return `${parts[3].replace(/\.$/, '')}:${parts[2]}`;
+          });
+          const txtRes = await fetch(`https://dns.google/resolve?name=${srvHost}&type=TXT`).then(r => r.json());
+          const txtData = (txtRes.Answer || []).filter(a => a.type === 16).map(a => a.data.replace(/"/g, '')).join('&');
+          const params = new URLSearchParams(txtData);
+          if (query) {
+            const extra = new URLSearchParams(query.replace(/^\?/, ''));
+            for (const [k, v] of extra.entries()) params.set(k, v);
+          }
+          params.set('ssl', 'true');
+          const fallbackUri = `mongodb://${userinfo}@${srvRecords.join(',')}${dbPath || '/'}?${params.toString()}`;
+          conn = await mongoose.connect(fallbackUri, { serverSelectionTimeoutMS: 8000 });
+        } else {
+          throw srvErr;
+        }
+      } else {
+        throw srvErr;
+      }
+    }
 
     console.log('✅ Status: Successfully connected to MongoDB Atlas!');
     console.log(`🌐 Cluster Host: ${conn.connection.host}`);

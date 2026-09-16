@@ -17,7 +17,7 @@ export const LoginPage = () => {
     e.preventDefault();
     setError('');
 
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
+    if (!email.trim().toLowerCase().endsWith('@gmail.com')) {
       setError('Please use a valid @gmail.com address.');
       return;
     }

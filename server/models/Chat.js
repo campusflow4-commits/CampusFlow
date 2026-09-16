@@ -39,8 +39,24 @@ const messageSchema = new mongoose.Schema({
   },
   text: {
     type: String,
-    required: [true, 'Message text is required'],
     trim: true
+  },
+  messageType: {
+    type: String,
+    enum: ['text', 'image', 'video', 'document', 'audio'],
+    default: 'text'
+  },
+  fileUrl: String,
+  fileName: String,
+  fileMimeType: String,
+  fileSize: Number,
+  isEdited: {
+    type: Boolean,
+    default: false
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false
   },
   read: {
     type: Boolean,

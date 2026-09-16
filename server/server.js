@@ -50,6 +50,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Socket.IO real-time event handling
 const onlineUsers = new Map(); // userId -> socketId
@@ -71,14 +72,20 @@ io.on('connection', (socket) => {
 
   // Send real-time message
   socket.on('send_message', (data) => {
-    const { senderId, receiverId, text, createdAt, senderName, senderAvatar } = data;
+    const { senderId, receiverId, text, createdAt, senderName, senderAvatar, messageType, fileUrl, fileName, fileMimeType, fileSize, _id } = data;
     const roomId = [senderId, receiverId].sort().join('_');
     
     // Broadcast to the chat room
     io.to(roomId).emit('receive_message', {
+      _id,
       senderId,
       receiverId,
       text,
+      messageType,
+      fileUrl,
+      fileName,
+      fileMimeType,
+      fileSize,
       createdAt: createdAt || new Date(),
       senderName,
       senderAvatar
@@ -92,6 +99,47 @@ io.on('connection', (socket) => {
         senderName,
         text
       });
+    }
+  });
+
+  // Edit message
+  socket.on('edit_message', ({ messageId, senderId, receiverId, text }) => {
+    const roomId = [senderId, receiverId].sort().join('_');
+    socket.to(roomId).emit('message_edited', { messageId, text });
+  });
+
+  // Delete message
+  socket.on('delete_message', ({ messageId, senderId, receiverId }) => {
+    const roomId = [senderId, receiverId].sort().join('_');
+    socket.to(roomId).emit('message_deleted', { messageId });
+  });
+
+  // WebRTC Signaling
+  socket.on('call_user', ({ userToCall, signalData, from, name }) => {
+    const receiverSocketId = onlineUsers.get(userToCall);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('call_incoming', { signal: signalData, from, name });
+    }
+  });
+
+  socket.on('answer_call', ({ to, signal }) => {
+    const callerSocketId = onlineUsers.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('call_accepted', signal);
+    }
+  });
+
+  socket.on('reject_call', ({ to }) => {
+    const callerSocketId = onlineUsers.get(to);
+    if (callerSocketId) {
+      io.to(callerSocketId).emit('call_rejected');
+    }
+  });
+
+  socket.on('end_call', ({ to }) => {
+    const targetSocketId = onlineUsers.get(to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('call_ended');
     }
   });
 

@@ -1,5 +1,42 @@
 import mongoose from 'mongoose';
 
+/**
+ * Resilient SRV resolver for networks/routers that block or refuse UDP DNS SRV queries.
+ * Queries Google DoH over HTTPS and constructs a direct replica set connection URI.
+ */
+async function resolveAtlasSrv(uri) {
+  if (!uri || !uri.startsWith('mongodb+srv://')) return uri;
+
+  const match = uri.match(/^mongodb\+srv:\/\/([^@]+)@([^/?]+)(\/[^?]*)?(\?.*)?$/);
+  if (!match) return uri;
+
+  const [, userinfo, srvHost, dbPath = '', query = ''] = match;
+
+  try {
+    const srvRes = await fetch(`https://dns.google/resolve?name=_mongodb._tcp.${srvHost}&type=SRV`).then(r => r.json());
+    const srvRecords = (srvRes.Answer || []).filter(a => a.type === 33).map(a => {
+      const parts = a.data.split(' ');
+      return `${parts[3].replace(/\.$/, '')}:${parts[2]}`;
+    });
+
+    if (srvRecords.length === 0) return uri;
+
+    const txtRes = await fetch(`https://dns.google/resolve?name=${srvHost}&type=TXT`).then(r => r.json());
+    const txtData = (txtRes.Answer || []).filter(a => a.type === 16).map(a => a.data.replace(/"/g, '')).join('&');
+
+    const params = new URLSearchParams(txtData);
+    if (query) {
+      const extra = new URLSearchParams(query.replace(/^\?/, ''));
+      for (const [k, v] of extra.entries()) params.set(k, v);
+    }
+    params.set('ssl', 'true');
+
+    return `mongodb://${userinfo}@${srvRecords.join(',')}${dbPath || '/'}?${params.toString()}`;
+  } catch (err) {
+    return uri;
+  }
+}
+
 export const connectDB = async () => {
   const uri = process.env.MONGO_URI;
 
@@ -23,6 +60,24 @@ export const connectDB = async () => {
     console.log(`📦 Database: ${conn.connection.name}\n`);
     return true;
   } catch (error) {
+    const isSrvIssue = error.message && (error.message.includes('querySrv') || error.message.includes('ECONNREFUSED'));
+
+    if (isSrvIssue && uri.startsWith('mongodb+srv://')) {
+      console.log('🔄 Local DNS refused SRV resolution. Attempting resilient connection...');
+      try {
+        const fallbackUri = await resolveAtlasSrv(uri);
+        if (fallbackUri !== uri) {
+          const conn = await mongoose.connect(fallbackUri, {
+            serverSelectionTimeoutMS: 8000
+          });
+          console.log(`\n✅ MongoDB Atlas Connected Successfully (Resilient Mode): ${conn.connection.host}`);
+          console.log(`📦 Database: ${conn.connection.name}\n`);
+          return true;
+        }
+      } catch (fallbackErr) {
+        // Continue to original error reporting below
+      }
+    }
     const safeMsg = (error.message || '').replace(/mongodb(\+srv)?:\/\/[^@]+@/g, 'mongodb+srv://***:***@');
     console.error('\n❌ MongoDB Atlas Connection Failed:');
     console.error(`Message: ${safeMsg}`);

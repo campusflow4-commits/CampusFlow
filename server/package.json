@@ -10,7 +10,11 @@
     "test-db": "node test-db.js",
     "test-flow": "node verify-registration.js"
   },
-  "keywords": ["skillswap", "education", "mern"],
+  "keywords": [
+    "skillswap",
+    "education",
+    "mern"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -20,6 +24,7 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.0",
+    "multer": "^2.4.0",
     "socket.io": "^4.7.5"
   }
 }

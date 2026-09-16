@@ -5,8 +5,35 @@ import mongoose from 'mongoose';
 import { User } from '../models/User.js';
 import { CreditTransaction } from '../models/CreditTransaction.js';
 import { protect } from '../middleware/authMiddleware.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/avatars/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, req.user._id + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|webp/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only JPG, PNG and WEBP images are allowed'));
+    }
+  }
+});
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'skillswap_default_secret_2026', {
@@ -151,7 +178,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Please enter both your Gmail and password.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(401).json({ message: 'Invalid Gmail address or password.' });
     }
@@ -298,6 +325,21 @@ router.put('/change-password', protect, async (req, res) => {
     res.json({ message: 'Password changed successfully!' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to change password.' });
+  }
+});
+
+// POST /api/auth/avatar
+router.post('/avatar', protect, upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded or invalid file type.' });
+    }
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+    req.user.avatar = avatarPath;
+    await req.user.save();
+    res.json({ message: 'Avatar updated successfully!', avatar: avatarPath, user: req.user });
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to upload avatar.' });
   }
 });
 
